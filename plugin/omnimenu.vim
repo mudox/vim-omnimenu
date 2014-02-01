@@ -54,7 +54,7 @@ function s:key_loop() " {{{2
   while 1 " take charge of all key pressings.
     call s:update_buffer()
     call s:update_highlight()
-    redraw
+    redraw!
 
     echo '>>> ' . s:session.input
     let nr = getchar()
