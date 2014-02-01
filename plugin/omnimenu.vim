@@ -81,7 +81,7 @@ function s:key_loop() " {{{2
       break
     elseif nr == 27 || nr == 3                " <Esc> or <C-c>
       " close omnimenu window and clear cmd line.
-      close | redraw!
+      close | redraw
       let s:session = {}
       break
     endif
@@ -121,7 +121,7 @@ endfunction "  }}}2
 
 function s:action_enter() " {{{2
   " close omnibuffer & clear cmd line.
-  close | redraw!
+  close | redraw
 
   echo 'lauching: ' . s:session.line
 
