@@ -82,6 +82,9 @@ function s:key_loop() " {{{2
     elseif nr == 27 || nr == 3                " <Esc> or <C-c>
       " close omnimenu window and clear cmd line.
       close | redraw
+      echoh WarningMsg
+      echo '* omnimenu: Canceled *'
+      echoh None
       let s:session = {}
       break
     endif
