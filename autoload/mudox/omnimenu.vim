@@ -27,14 +27,9 @@ let s:win_height = get(g:, 'g:omnimenu_win_height', 8)
 
 " CORE FUNCTIONS {{{1
 function s:update_buffer(provider) " {{{2
-  let data_list = a:provider.source_generator(s:session)
+  let old_line_num = len(get(s:session, 'lines', []))
 
-  let s:session.input = get(s:session, 'input', '')
-  if !empty(s:session.input)
-    call filter(data_list, "match(v:val, '^.*' . s:session.input . '.*$') != -1")
-  endif
-
-  let s:session.lines = data_list
+  let s:session.lines = a:provider.source_generator(s:session)
 
   " refill buffer.
   %delete _
@@ -42,11 +37,22 @@ function s:update_buffer(provider) " {{{2
   delete _
 
   " resize window.
-  let win_height = min([s:win_height, len(data_list)])
+  let win_height = min([s:win_height, len(s:session.lines)])
   execute printf("resize %d", win_height)
 
   " relocate current line.
-  let s:session.lnum = get(s:session, 'lnum', line('$'))
+  " put current line at the last line in the beginning.
+  " if the number of buffer lines changed, reset currrent line to the last
+  " line.
+
+  if !has_key(s:session, 'lnum')
+    let s:session.lnum = line('$')
+  else
+    if len(s:session.lines) != old_line_num
+      let s:session.lnum = line('$')
+    endif
+  endif
+
   call cursor(s:session.lnum, 1)
   normal! zb
 endfunction "  }}}2
@@ -62,9 +68,11 @@ function s:key_loop(provider) " {{{2
   while 1 " take charge of all key pressings.
     call s:update_buffer(a:provider)
     call s:update_highlight()
-    redraw
 
+    " redraw
+    redraw
     echo '>>> ' . s:session.input
+
     let nr = getchar()
 
     if index(alphnum, nr) != -1               " alphanumeric
@@ -77,7 +85,7 @@ function s:key_loop(provider) " {{{2
       let s:session.lnum = min([line('$'), s:session.lnum + 1])
     elseif nr == 11                           " <C-k>
       let s:session.lnum = max([s:session.lnum - 1, 1])
-    elseif nr == 8                            " <C-k>
+    elseif nr == 8                            " <C-h>
       " TODO:
     elseif nr == 12                           " <C-l>
       " TODO:
