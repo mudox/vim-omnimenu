@@ -35,7 +35,7 @@ endfunction "  }}}2
 " make the provider data structure.
 let mudox#omnimenu#providers#cham_startup#provider = {
       \ 'title'             : 'Startup',
-      \ 'description'       : 'chameleon top modes.',
+      \ 'description'       : 'start gvim in new mode',
       \ 'source_generator'  : function('s:source_generator'),
       \ 'action_enter'      : function('s:action_enter'),
       \ }

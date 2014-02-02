@@ -16,7 +16,6 @@ let s:session = {}
 
 " hold all registered menu providers.
 let s:providers = []
-let mudox#omnimenu#providers = s:providers
 
 " omnimenu window max height in lines.
 " if less lines are provided, the window will shrink accordingly.
@@ -85,7 +84,12 @@ function s:key_loop(provider) " {{{2
     elseif nr == 13                           " <Enter>
       let s:session.lnum = line('.')
       let s:session.line = getline('.')
-      call s:action_enter()
+
+      if has_key(a:provider, 'action_enter')
+        call a:provider.action_enter(s:session)
+      else
+        call s:action_enter(s:session)
+      endif
 
       break
     elseif nr == 27 || nr == 3                " <Esc> or <C-c>
@@ -153,17 +157,11 @@ endfunction "  }}}2
 "   'input'  : user input in the cmd line.
 " }
 
-function s:action_enter() " {{{2
+function s:action_enter(session) " {{{2
   " close omnibuffer & clear cmd line.
   close | redraw
 
-  echo 'lauching: ' . s:session.line
-  call writefile([s:session.line], g:mdx_chameleon_cur_mode_file)
-  py import subprocess
-  py subprocess.Popen('gvim')
-
-  " clear session data.
-  let s:session = {}
+  echo 'You choosed: ' . a:session.line
 endfunction "  }}}2
 
 " }}}1
@@ -191,7 +189,7 @@ function mudox#omnimenu#new(provider) " {{{2
 
   let buffer_name = 'OmniMenu > ' . a:provider.title
   " unamed buffer opened at bottom-most.
-  execute printf("botright 1new '%s'", buffer_name)
+  execute printf("botright 1new %s", escape(buffer_name, ' '))
   " ftplugin/omnimenu.vim will be sourced.
   set filetype=omnimenu
 
@@ -199,4 +197,8 @@ function mudox#omnimenu#new(provider) " {{{2
   call s:key_loop(a:provider)
 endfunction "  }}}2
 
+" return registered providers.
+function mudox#omnimenu#providers() " {{{2
+  return s:providers
+endfunction "  }}}2
 " }}}1
