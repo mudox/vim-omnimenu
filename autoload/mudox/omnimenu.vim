@@ -29,22 +29,25 @@ let s:win_height = get(g:, 'g:omnimenu_win_height', 8)
 function s:update_buffer(provider) " {{{2
   let old_line_num = len(get(s:session, 'lines', []))
 
-  let s:session.lines = a:provider.source_generator(s:session)
+  if !has_key(s:session, 'lines') || has_key(s:session, 'filter')
+    " regenerate source data.
+    let s:session.lines = a:provider.source_generator(s:session)
+    silent! unlet s:session.filter
 
-  " refill buffer.
-  %delete _
-  call append(0, s:session.lines)
-  delete _
+    " refill buffer.
+    %delete _
+    call append(0, s:session.lines)
+    delete _
 
-  " resize window.
-  let win_height = min([s:win_height, len(s:session.lines)])
-  execute printf("resize %d", win_height)
+    " resize window.
+    let win_height = min([s:win_height, len(s:session.lines)])
+    execute printf("resize %d", win_height)
+  endif
 
   " relocate current line.
   " put current line at the last line in the beginning.
   " if the number of buffer lines changed, reset currrent line to the last
   " line.
-
   if !has_key(s:session, 'lnum')
     let s:session.lnum = line('$')
   else
@@ -77,10 +80,13 @@ function s:key_loop(provider) " {{{2
 
     if index(alphnum, nr) != -1               " alphanumeric
       let s:session.input = s:session.input . nr2char(nr)
+      let s:session.filter = 1
     elseif nr == "\<BS>"                      " <Backspace>
       let s:session.input = s:session.input[:-2]
+      let s:session.filter = 1
     elseif nr == 21                           " <C-u>
       let s:session.input = ''
+      let s:session.filter = 1
     elseif nr == 10                           " <C-j>
       let s:session.lnum = min([line('$'), s:session.lnum + 1])
     elseif nr == 11                           " <C-k>
