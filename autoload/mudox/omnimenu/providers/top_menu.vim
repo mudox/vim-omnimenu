@@ -25,7 +25,7 @@ function s:source_generator(session) " {{{2
 
   if !empty(a:session.input)
     let line_list = filter(copy(s:full_line_list),
-          \ "match(v:val, '\\c^.*\\V' . a:session.input . '\\m.*$') != -1")
+          \ printf("match(v:val, '\\c%s') != -1", a:session.input))
     return line_list
   else
     return s:full_line_list

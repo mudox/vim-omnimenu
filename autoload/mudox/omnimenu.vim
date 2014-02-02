@@ -189,7 +189,7 @@ function mudox#omnimenu#new(provider) " {{{2
 
   let buffer_name = 'OmniMenu > ' . a:provider.title
   " unamed buffer opened at bottom-most.
-  execute printf("botright 1new %s", escape(buffer_name, ' '))
+  execute printf("noautocmd botright 1new %s", escape(buffer_name, ' '))
   " ftplugin/omnimenu.vim will be sourced.
   set filetype=omnimenu
 

@@ -21,7 +21,9 @@ nnoremap <silent> <Plug>(OmniMenu_ChamStartup) :<C-U>ChamStartup<Cr>
 " }}}1
 
 let g:omnimenu_providers = [
-      \ mudox#omnimenu#providers#cham_startup#provider,
+      \ mudox#omnimenu#providers#cham_startup#provider  ,
+      \ mudox#omnimenu#providers#cham_edit_meta#provider,
+      \ mudox#omnimenu#providers#cham_edit_mode#provider,
       \ ]
 
 "call mudox#omnimenu#register_provider(
