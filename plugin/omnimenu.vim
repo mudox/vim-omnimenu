@@ -26,9 +26,6 @@ let g:omnimenu_providers = [
       \ mudox#omnimenu#providers#cham_edit_mode#provider,
       \ ]
 
-"call mudox#omnimenu#register_provider(
-      "\ mudox#omnimenu#providers#top_menu#provider)
-
 for p in g:omnimenu_providers
   call mudox#omnimenu#register_provider(p)
 endfor
