@@ -14,7 +14,7 @@ function s:action_enter(session) " {{{2
   close | redraw
 
   let selected_provider = s:provider_map[a:session.line]
-  call mudox#omnimenu#new(selected_provider)
+  call OmniMenu(selected_provider)
 endfunction "  }}}2
 
 function s:source_generator(session) " {{{2
@@ -41,14 +41,14 @@ function s:init() " {{{2
   let s:provider_map = {}
 
   let title_column_max_width = 0
-  for p in mudox#omnimenu#providers()
+  for p in mudox#omnimenu#register#stubs()
     let title_column_max_width = max([title_column_max_width, len(p.title)])
   endfor
 
-  for p in mudox#omnimenu#providers()
+  for p in mudox#omnimenu#register#stubs()
     let key = printf("%-" . title_column_max_width . "s : %s",
           \ p.title, p.description)
-    let s:provider_map[key] = p
+    let s:provider_map[key] = p.string
   endfor
 
   lockvar! s:provider_map
@@ -63,5 +63,3 @@ let mudox#omnimenu#providers#top_menu#provider = {
       \ 'source_generator'  : function('s:source_generator'),
       \ 'action_enter'      : function('s:action_enter'),
       \ }
-let s:provider = mudox#omnimenu#providers#top_menu#provider
-
