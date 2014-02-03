@@ -9,7 +9,7 @@ let s:loaded = 1
 
 " PROVIDER MEMEBERS {{{1
 
-function s:action_enter(session) " {{{2
+function s:on_enter(session) " {{{2
   " close omnibuffer & clear cmd line.
   close | redraw
 
@@ -17,7 +17,7 @@ function s:action_enter(session) " {{{2
   call OmniMenu(selected_provider)
 endfunction "  }}}2
 
-function s:source_generator(session) " {{{2
+function s:feed(session) " {{{2
   if !exists('s:full_line_list')
     call s:init()
     let s:full_line_list = keys(s:provider_map)
@@ -60,6 +60,6 @@ endfunction "  }}}2
 let mudox#omnimenu#providers#top_menu#provider = {
       \ 'title'             : 'Top',
       \ 'description'       : 'omnimenu top level menu, a menu of available menus.',
-      \ 'source_generator'  : function('s:source_generator'),
-      \ 'action_enter'      : function('s:action_enter'),
+      \ 'feed'              : function('s:feed'),
+      \ 'on_enter'          : function('s:on_enter'),
       \ }
