@@ -210,7 +210,7 @@ function OmniMenu(provider) " {{{2
 
   let buffer_name = 'OmniMenu > ' . provider['title']
   " unamed buffer opened at bottom-most.
-  execute printf("noautocmd botright 1new %s", escape(buffer_name, ' '))
+  silent execute printf("noautocmd botright 1new %s", escape(buffer_name, ' '))
   " ftplugin/omnimenu.vim will be sourced.
   set filetype=omnimenu
 
