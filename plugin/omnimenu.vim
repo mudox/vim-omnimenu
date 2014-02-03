@@ -29,10 +29,15 @@ let s:win_height = get(g:, 'g:omnimenu_win_height', 8)
 function s:update_buffer(provider) " {{{2
   let old_line_num = len(get(s:session, 'lines', []))
 
+  " re-feed data & redraw window only if needed.
   if !has_key(s:session, 'lines') || has_key(s:session, 'filter')
-    " regenerate source data.
-    let s:session.lines = a:provider.source_generator(s:session)
-    silent! unlet s:session.filter
+    " re-feed source data.
+    let s:session.lines = a:provider.feed(s:session)
+
+    " reset filter flag.
+    if has_key(s:session, 'filter')
+      unlet s:session.filter
+    endif
 
     " refill buffer.
     %delete _
@@ -100,20 +105,17 @@ function s:key_loop(provider) " {{{2
       let s:session.lnum = line('.')
       let s:session.line = getline('.')
 
-      if has_key(a:provider, 'action_enter')
-        call a:provider.action_enter(s:session)
+      if has_key(a:provider, 'on_enter')
+        call a:provider.on_enter(s:session)
       else
-        call s:default_action_enter(s:session)
+        call s:default_on_enter(s:session)
       endif
 
       break
     elseif nr == 27 || nr == 3                " <Esc> or <C-c>
       " close omnimenu window and clear cmd line.
-      close | redraw
-      echoh WarningMsg
-      echo '* omnimenu: Canceled *'
-      echoh None
-      let s:session = {}
+      "close | redraw | echo
+      call mudox#omnimenu#close()
       break
     endif
   endwhile
@@ -134,11 +136,13 @@ endfunction "  }}}2
 " structure, the provider script wil be loaded if not.
 " THEN it will check provider's sanity. throw detailed info for any fault.
 function s:check_convert_provider(provider) " {{{2
-
   " a:provider must be a string or a dict.
   " convert string to underlying dict if needed.
   if type(a:provider) == type('')
-    let provider = eval('g:' . a:provider)
+    if a:provider !~ '\C\m^g:'
+      let provider_string = 'g:' . a:provider
+    endif
+    let provider = eval(provider_string)
   elseif type(a:provider) == type({})
     let provider = a:provider
   else
@@ -163,12 +167,12 @@ function s:check_convert_provider(provider) " {{{2
           \ string(provider))
   endif
 
-  " must have a 'source_generator' field of funcref type.
-  if !has_key(provider, 'source_generator')
-    throw printf("omnimenu: missing member 'source_generator' in provder %s",
+  " must have a 'feed' field of funcref type.
+  if !has_key(provider, 'feed')
+    throw printf("omnimenu: missing member 'feed' in provder %s",
           \ string(provider))
-  elseif type(provider.source_generator) != type(function('add'))
-    throw printf("omnimenu: provider.source_generator should be funcref in %s",
+  elseif type(provider.feed) != type(function('add'))
+    throw printf("omnimenu: provider.feed should be funcref in %s",
           \ string(provider))
   endif
 
@@ -190,7 +194,7 @@ endfunction "  }}}2
 "   'input'  : user input in the cmd line.
 " }
 
-function s:default_action_enter(session) " {{{2
+function s:default_on_enter(session) " {{{2
   " close omnibuffer & clear cmd line.
   close | redraw
 
