@@ -19,7 +19,7 @@ let s:providers = []
 
 " omnimenu window max height in lines.
 " if less lines are provided, the window will shrink accordingly.
-let s:win_height = get(g:, 'g:omnimenu_win_height', 8)
+let s:default_max_win_height = get(g:, 'g:omnimenu_win_height', 8)
 
 " menu contents providers.
 
@@ -27,7 +27,7 @@ let s:win_height = get(g:, 'g:omnimenu_win_height', 8)
 
 " CORE FUNCTIONS {{{1
 function s:update_buffer(provider) " {{{2
-  let old_line_num = len(get(s:session, 'lines', []))
+  let old_line_count = len(get(s:session, 'lines', []))
 
   " re-feed data & redraw window only if needed.
   if !has_key(s:session, 'lines') || has_key(s:session, 'filter')
@@ -45,8 +45,7 @@ function s:update_buffer(provider) " {{{2
     delete _
 
     " resize window.
-    let win_height = min([s:win_height, len(s:session.lines)])
-    execute printf("resize %d", win_height)
+    call s:resize_win(a:provider)
   endif
 
   " relocate current line.
@@ -56,7 +55,7 @@ function s:update_buffer(provider) " {{{2
   if !has_key(s:session, 'lnum')
     let s:session.lnum = line('$')
   else
-    if len(s:session.lines) != old_line_num
+    if len(s:session.lines) != old_line_count
       let s:session.lnum = line('$')
     endif
   endif
@@ -65,8 +64,28 @@ function s:update_buffer(provider) " {{{2
   normal! zb
 endfunction "  }}}2
 
-" repeatedly call getchar() to absorb all key pressings when omnimenu buffer
-" is open.
+" resize omnimenu window after buffer have been refreshed.
+function s:resize_win(provider) " {{{2
+  if !has_key(s:session, 'prev_win_height') " first draw.
+    let max_win_height = get(a:provider, 'win_height', s:default_max_win_height)
+    let win_height = min([max_win_height, len(s:session.lines)])
+    execute printf("resize %d", win_height)
+    let s:session.prev_win_height = win_height
+  else
+    if get(a:provider, 'shrinkable', 1) " redraw
+      let max_win_height = get(a:provider, 'win_height', s:default_max_win_height)
+      let win_height = min([max_win_height, len(s:session.lines)])
+      if s:session.prev_win_height != win_height
+        execute printf("resize %d", win_height)
+        let s:session.prev_win_height = win_height
+      endif
+    endif
+  endif
+endfunction "  }}}2
+
+" core key loop.
+" repeatedly call getchar() to absorb all key pressings from user when
+" omnimenu buffer is open.
 function s:key_loop(provider) " {{{2
   " list of ascii number of [0-9a-zA-Z]
   let normal_char = range(0x30, 0x39) + range(0x41, 0x5a) + range(0x61, 0x7a)
@@ -212,8 +231,10 @@ function OmniMenu(provider) " {{{2
   " reset for a new session.
   let s:session = {}
 
-  " unamed buffer opened at bottom-most.
-  silent execute printf("noautocmd botright 1new %s", '__mudox__omnimenu__')
+  " open a new window in the user specified way, 'new' if not.
+  " suppress any autocmd events.
+  silent execute printf("noautocmd %s __mudox__omnimenu__",
+        \ get(a:provider, 'open_way', 'botright 1new'))
   let status_string = 'OmniMenu > ' . provider['title']
   let &l:statusline = status_string
   " ftplugin/omnimenu.vim will be sourced.
