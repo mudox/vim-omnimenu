@@ -11,7 +11,12 @@ let s:loaded = 1
 
 " used to close omnimenu window when terminating a omnimenu session.
 function mudox#omnimenu#close() " {{{2
-  close | redraw | echo
+  " if omnimenu is the last window, quit the vim.
+  if tabpagenr('$') == 1 && winnr('$') == 1
+    quit
+  else
+    close | redraw | echo
+  endif
 endfunction "  }}}2
 
 " }}}1
