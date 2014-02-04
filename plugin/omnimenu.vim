@@ -212,9 +212,10 @@ function OmniMenu(provider) " {{{2
   " reset for a new session.
   let s:session = {}
 
-  let buffer_name = 'OmniMenu > ' . provider['title']
   " unamed buffer opened at bottom-most.
-  silent execute printf("noautocmd botright 1new %s", escape(buffer_name, ' '))
+  silent execute printf("noautocmd botright 1new %s", '__mudox__omnimenu__')
+  let status_string = 'OmniMenu > ' . provider['title']
+  let &l:statusline = status_string
   " ftplugin/omnimenu.vim will be sourced.
   set filetype=omnimenu
 
