@@ -248,7 +248,7 @@ endfunction "  }}}2
 
 " COMMANDS & MAPPINGS                        {{{1
 
-" :OmniMenuTopMenu & <Plug>(OmniMenu_TopMenu)
+" command & mapping to stat 'top_menu' session.
 command -narg=0 OmniMenuTopMenu call OmniMenu(
       \ mudox#omnimenu#providers#top_menu#provider)
 nnoremap <silent> <Plug>(OmniMenu_TopMenu) :<C-U>OmniMenuTopMenu<Cr>
