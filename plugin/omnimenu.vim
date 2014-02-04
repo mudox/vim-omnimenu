@@ -1,13 +1,13 @@
 " vim: foldmethod=marker
 
-" GUARD {{{1
+" GUARD                                      {{{1
 if exists("s:loaded") || &cp || version < 700
   finish
 endif
 let s:loaded = 1
 " }}}1
 
-" VARIABLES. {{{1
+" VARIABLES.                                 {{{1
 
 " for each invocation of :OmniMenu, s:session is first cleared and then
 " refilled with infomation pertain to this session.
@@ -25,8 +25,8 @@ let s:default_max_win_height = get(g:, 'g:omnimenu_win_height', 8)
 
 " }}}1
 
-" CORE FUNCTIONS {{{1
-function s:update_buffer(provider) " {{{2
+" CORE FUNCTIONS                             {{{1
+function s:update_buffer(provider)            " {{{2
   let old_line_count = len(get(s:session, 'lines', []))
 
   " re-feed data & redraw window only if needed.
@@ -65,7 +65,7 @@ function s:update_buffer(provider) " {{{2
 endfunction "  }}}2
 
 " resize omnimenu window after buffer have been refreshed.
-function s:resize_win(provider) " {{{2
+function s:resize_win(provider)               " {{{2
   if !has_key(s:session, 'prev_win_height') " first draw.
     let max_win_height = get(a:provider, 'win_height', s:default_max_win_height)
     let win_height = min([max_win_height, len(s:session.lines)])
@@ -86,7 +86,7 @@ endfunction "  }}}2
 " core key loop.
 " repeatedly call getchar() to absorb all key pressings from user when
 " omnimenu buffer is open.
-function s:key_loop(provider) " {{{2
+function s:key_loop(provider)                 " {{{2
   " list of ascii number of [0-9a-zA-Z]
   let normal_char = range(0x30, 0x39) + range(0x41, 0x5a) + range(0x61, 0x7a)
         \ + map(split('_/', '.\zs'), 'char2nr(v:val)')
@@ -141,7 +141,7 @@ function s:key_loop(provider) " {{{2
 endfunction "  }}}2
 
 " highlight part of each line that match against user input.
-function s:update_highlight() " {{{2
+function s:update_highlight()                 " {{{2
   syntax clear
   if !empty(s:session.input)
     execute 'syntax match OmniMenuMatched :' . s:session.input . ':'
@@ -154,7 +154,7 @@ endfunction "  }}}2
 " FIRST it will eval a:provider to get the underlying dictionary data
 " structure, the provider script wil be loaded if not.
 " THEN it will check provider's sanity. throw detailed info for any fault.
-function s:check_convert_provider(provider) " {{{2
+function s:check_convert_provider(provider)   " {{{2
   " a:provider must be a string or a dict.
   " convert string to underlying dict if needed.
   if type(a:provider) == type('')
@@ -202,7 +202,7 @@ endfunction "  }}}2
 
 " }}}1
 
-" DEFAULT ACTION FUNCTIONS {{{1
+" DEFAULT ACTION FUNCTIONS                   {{{1
 
 " after user pressed a specific combinations (e.g. <Enter>, <C-o>, <C-Enter>
 " ...), a corresponding action function is called with 1 argument:
@@ -213,7 +213,7 @@ endfunction "  }}}2
 "   'input'  : user input in the cmd line.
 " }
 
-function s:default_on_enter(session) " {{{2
+function s:default_on_enter(session)          " {{{2
   " close omnibuffer & clear cmd line.
   close | redraw
 
@@ -222,10 +222,10 @@ endfunction "  }}}2
 
 " }}}1
 
-" PUBLIC FUNCTIONS {{{1
+" PUBLIC FUNCTIONS                           {{{1
 
 " main entry.
-function OmniMenu(provider) " {{{2
+function OmniMenu(provider)                   " {{{2
   let provider = s:check_convert_provider(a:provider)
 
   " reset for a new session.
@@ -246,12 +246,11 @@ endfunction "  }}}2
 
 " }}}1
 
-" COMMANDS & MAPPINGS {{{1
+" COMMANDS & MAPPINGS                        {{{1
+
+" :OmniMenuTopMenu & <Plug>(OmniMenu_TopMenu)
 command -narg=0 OmniMenuTopMenu call OmniMenu(
       \ mudox#omnimenu#providers#top_menu#provider)
 nnoremap <silent> <Plug>(OmniMenu_TopMenu) :<C-U>OmniMenuTopMenu<Cr>
 
-command -narg=0 ChamStartup call OmniMenu(
-      \ mudox#omnimenu#providers#cham_startup#provider)
-nnoremap <silent> <Plug>(OmniMenu_ChamStartup) :<C-U>ChamStartup<Cr>
 " }}}1
