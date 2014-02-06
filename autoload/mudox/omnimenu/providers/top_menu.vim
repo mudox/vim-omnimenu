@@ -10,8 +10,13 @@ let s:loaded = 1
 " PROVIDER MEMEBERS {{{1
 
 function s:on_enter(session) " {{{2
+  " no valid mode selected, no-ops.
+  if session ==# '^\s*$'
+    return
+  endif
+
   " close omnibuffer & clear cmd line.
-  close | redraw
+  call mudox#omnimenu#close()
 
   let selected_provider = s:provider_map[a:session.line]
   call OmniMenu(selected_provider)
