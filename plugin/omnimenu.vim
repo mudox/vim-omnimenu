@@ -10,9 +10,15 @@ let s:loaded = 1
 " VARIABLES.                                 {{{1
 
 " for each invocation of :OmniMenu, s:session is first cleared and then
-" refilled with infomation pertain to this session.
-" for details about it's memebers see comments under setion 'ACTIONS' below.
-let s:session = {}
+" refilled with infomation pertains to this session.
+" s:session = {
+"   'lnum'   : selected line number.
+"   'line'   : selected line content.
+"   'lines'  : list of all lines in the buffer.
+"   'input'  : user input in the cmd line.
+"   'redraw' : flag indicating the omnimenu buffer need to regen and & redraw.
+"   'winnr'  : omnimenu main window nummber.
+" }
 
 " hold all registered menu providers.
 let s:providers = []
@@ -32,7 +38,8 @@ function s:update_buffer(provider)            " {{{2
   " re-feed data & redraw window only if needed.
   if !has_key(s:session, 'lines') || has_key(s:session, 'redraw')
     " re-feed source data.
-    let s:session.lines = a:provider.feed(s:session)
+    let s:session.lines = mudox#omnimenu#view#mosaic_view(
+          \ a:provider, s:session)
 
     " reset redraw flag.
     if has_key(s:session, 'redraw')
@@ -213,13 +220,13 @@ endfunction "  }}}2
 
 " DEFAULT ACTION FUNCTIONS                   {{{1
 
-" after user pressed a specific combinations (e.g. <Enter>, <C-o>, <C-Enter>
-" ...), a corresponding action function is called with 1 argument:
-" a:session = {
-"   'lnum'   : selected line number.
-"   'line'   : selected line content.
-"   'lines'  : list of all lines in the buffer.
-"   'input'  : user input in the cmd line.
+" after user pressed a specific key combination (e.g. <Enter>, <C-o>,
+" <C-Enter> ...), a corresponding action function is called with 1 argument:
+" a:provider = {
+"   'title'       :
+"   'description' :
+"   'feed'        :
+"   'on_xxx'      :
 " }
 
 function s:default_on_enter(session)          " {{{2
@@ -237,15 +244,19 @@ endfunction "  }}}2
 function OmniMenu(provider)                   " {{{2
   let provider = s:check_convert_provider(a:provider)
 
-  " reset for a new session.
-  let s:session = {}
-
   " open a new window in the user specified way, 'new' if not.
   " suppress any autocmd events.
   silent execute printf("noautocmd %s __mudox__omnimenu__",
         \ get(provider, 'open_way', 'botright 1new'))
+
+  " set status line.
   let status_string = 'OmniMenu > ' . provider['title']
   let &l:statusline = status_string
+
+  " reset for a new session.
+  let s:session = { 'winnr' : winnr(), 'input' : '' }
+  let mdx_omnimenu_session = s:session
+
   " ftplugin/omnimenu.vim will be sourced.
   set filetype=omnimenu
 
