@@ -12,12 +12,12 @@ let s:loaded = 1
 " for each invocation of :OmniMenu, s:session is first cleared and then
 " refilled with infomation pertains to this session.
 " s:session = {
-"   'lnum'   : selected line number.
-"   'line'   : selected line content.
-"   'lines'  : list of all lines in the buffer.
-"   'input'  : user input in the cmd line.
-"   'redraw' : flag indicating the omnimenu buffer need to regen and & redraw.
-"   'winnr'  : omnimenu main window nummber.
+"   'lnum'      : selected line number.
+"   'line'      : selected line content.
+"   'lines'     : list of all lines in the buffer.
+"   'input'     : user input in the cmd line.
+"   'redraw'    : flag indicating the omnimenu buffer need to regen and & redraw.
+"   'winnr'     : omnimenu main window nummber.
 " }
 
 " hold all registered menu providers.
@@ -38,8 +38,9 @@ function s:update_buffer(provider)            " {{{2
   " re-feed data & redraw window only if needed.
   if !has_key(s:session, 'lines') || has_key(s:session, 'redraw')
     " re-feed source data.
-    let s:session.lines = mudox#omnimenu#view#mosaic_view(
-          \ a:provider, s:session)
+    "let s:session.lines = mudox#omnimenu#view#mosaic_view(
+          "\ a:provider, s:session)
+    let s:session.lines = a:provider.feed(s:session)
 
     " reset redraw flag.
     if has_key(s:session, 'redraw')
@@ -84,13 +85,15 @@ endfunction "  }}}2
 " resize omnimenu window after buffer have been refreshed.
 function s:resize_win(provider)               " {{{2
   if !has_key(s:session, 'prev_win_height') " first draw.
-    let max_win_height = get(a:provider, 'win_height', s:default_max_win_height)
+    let max_win_height = get(a:provider, 'win_height',
+          \ s:default_max_win_height)
     let win_height = min([max_win_height, len(s:session.lines)])
     execute printf("resize %d", win_height)
     let s:session.prev_win_height = win_height
   else
     if get(a:provider, 'shrinkable', 1) " redraw
-      let max_win_height = get(a:provider, 'win_height', s:default_max_win_height)
+      let max_win_height = get(a:provider, 'win_height',
+            \ s:default_max_win_height)
       let win_height = min([max_win_height, len(s:session.lines)])
       if s:session.prev_win_height != win_height
         execute printf("resize %d", win_height)
@@ -147,7 +150,9 @@ function s:key_loop(provider)                 " {{{2
         call s:default_on_enter(s:session)
       endif
 
-      break
+      if get(s:session, 'quit', 1)
+        break
+      endif
     elseif nr == 27 || nr == 3                " <Esc> or <C-c>
       " close omnimenu window and clear cmd line.
       call mudox#omnimenu#close()
