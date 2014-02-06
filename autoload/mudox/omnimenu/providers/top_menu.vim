@@ -11,7 +11,8 @@ let s:loaded = 1
 
 function s:on_enter(session) " {{{2
   " no valid mode selected, no-ops.
-  if session ==# '^\s*$'
+  if a:session.line =~# '^\*\* Oops'
+    let a:session.quit = 0
     return
   endif
 
@@ -25,13 +26,17 @@ endfunction "  }}}2
 function s:feed(session) " {{{2
   if !exists('s:full_line_list')
     call s:init()
-    let s:full_line_list = keys(s:provider_map)
   endif
 
   if !empty(a:session.input)
-    let line_list = filter(copy(s:full_line_list),
+    let filtered_line_list = filter(copy(s:full_line_list),
           \ printf("match(v:val, '\\c%s') != -1", a:session.input))
-    return line_list
+
+    if empty(filtered_line_list)
+      return '** Oops, you need select an existing mode **'
+    else
+      return filtered_line_list
+    endif
   else
     return s:full_line_list
   endif
@@ -55,6 +60,8 @@ function s:init() " {{{2
           \ p.title, p.description)
     let s:provider_map[key] = p.string
   endfor
+
+  let s:full_line_list = keys(s:provider_map)
 
   lockvar! s:provider_map
 endfunction "  }}}2
