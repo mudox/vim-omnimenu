@@ -30,19 +30,29 @@ function s:update_buffer(provider)            " {{{2
   let old_line_count = len(get(s:session, 'lines', []))
 
   " re-feed data & redraw window only if needed.
-  if !has_key(s:session, 'lines') || has_key(s:session, 'filter')
+  if !has_key(s:session, 'lines') || has_key(s:session, 'redraw')
     " re-feed source data.
     let s:session.lines = a:provider.feed(s:session)
 
-    " reset filter flag.
-    if has_key(s:session, 'filter')
-      unlet s:session.filter
+    " reset redraw flag.
+    if has_key(s:session, 'redraw')
+      unlet s:session.redraw
     endif
 
     " refill buffer.
+
+    " switch wtite option for a readonly vim session.
+    let old_write = &write
+    let old_modifiable = &modifiable
+    set write
+    set modifiable
+
     %delete _
     call append(0, s:session.lines)
     delete _
+
+    let &write = old_write
+    let &modifiable = old_modifiable
 
     " resize window.
     call s:resize_win(a:provider)
@@ -105,13 +115,13 @@ function s:key_loop(provider)                 " {{{2
 
     if index(normal_char, nr) != -1               " alphanumeric
       let s:session.input = s:session.input . nr2char(nr)
-      let s:session.filter = 1
+      let s:session.redraw = 1
     elseif nr == "\<BS>"                      " <Backspace>
       let s:session.input = s:session.input[:-2]
-      let s:session.filter = 1
+      let s:session.redraw = 1
     elseif nr == 21                           " <C-u>
       let s:session.input = ''
-      let s:session.filter = 1
+      let s:session.redraw = 1
     elseif nr == 10                           " <C-j>
       let s:session.lnum = min([line('$'), s:session.lnum + 1])
     elseif nr == 11                           " <C-k>
@@ -133,7 +143,6 @@ function s:key_loop(provider)                 " {{{2
       break
     elseif nr == 27 || nr == 3                " <Esc> or <C-c>
       " close omnimenu window and clear cmd line.
-      "close | redraw | echo
       call mudox#omnimenu#close()
       break
     endif
@@ -215,7 +224,7 @@ endfunction "  }}}2
 
 function s:default_on_enter(session)          " {{{2
   " close omnibuffer & clear cmd line.
-  close | redraw
+  call mudox#omnimenu#close()
 
   echo 'You choosed: ' . a:session.line
 endfunction "  }}}2
@@ -234,7 +243,7 @@ function OmniMenu(provider)                   " {{{2
   " open a new window in the user specified way, 'new' if not.
   " suppress any autocmd events.
   silent execute printf("noautocmd %s __mudox__omnimenu__",
-        \ get(a:provider, 'open_way', 'botright 1new'))
+        \ get(provider, 'open_way', 'botright 1new'))
   let status_string = 'OmniMenu > ' . provider['title']
   let &l:statusline = status_string
   " ftplugin/omnimenu.vim will be sourced.

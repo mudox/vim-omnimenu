@@ -25,15 +25,15 @@ endfunction "  }}}2
 
 " MOSIAC VIEW.                                             {{{1
 
-function mudox#omnimenu#view#mosiac_view(provider)          " {{{2
+function mudox#omnimenu#view#mosaic_view(provider)          " {{{2
+  
+endfunction "  }}}2
+
+function mudox#omnimenu#view#mosaic_handle_keys(provider)   " {{{2
   " TODO:
 endfunction "  }}}2
 
-function mudox#omnimenu#view#mosiac_handle_keys(provider)   " {{{2
-  " TODO:
-endfunction "  }}}2
-
-function mudox#omnimenu#view#mosiac_highlight(provider)     " {{{2
+function mudox#omnimenu#view#mosaic_highlight(provider)     " {{{2
   " TODO:
 endfunction "  }}}2
 
