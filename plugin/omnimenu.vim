@@ -12,12 +12,30 @@ let s:loaded = 1
 " for each invocation of :OmniMenu, s:session is first cleared and then
 " refilled with infomation pertains to this session.
 " s:session = {
-"   'lnum'      : selected line number.
-"   'line'      : selected line content.
-"   'lines'     : list of all lines in the buffer.
-"   'input'     : user input in the cmd line.
-"   'redraw'    : flag indicating the omnimenu buffer need to regen and & redraw.
-"   'winnr'     : omnimenu main window nummber.
+"   'index'      : the index of list provided by provider.feed() that current
+"                  selected..
+"   'line'       : selected line content.
+"   'buffer'     : a list of holding all lines rendered to omnimenu window
+"                  buffer.
+"   'input'      : user input in the cmd line.
+"   'redraw'     : flag indicating the omnimenu buffer need to regen and &
+"                  redraw.
+"   'winnr'      : omnimenu main window nummber.
+"   'view'       : currently suport 'grid' & 'list'.
+"   'grid.cellw' : grid cell width in chars.
+"   'grid.cols'  : grid width in cells.
+"   'grid.rows'  : grid height in cells.
+"   'grid.x'     : current grid unit's x posistion in cells.
+"   'grid.y'     : current grid unit's y posistion in cells.
+" }
+
+" after user pressed a specific key combination (e.g. <Enter>, <C-o>,
+" <C-Enter> ...), a corresponding action function is called with 1 argument:
+" a:provider = {
+"   'title'       :
+"   'description' :
+"   'feed'        : source line generator.
+"   'on_enter'    : user pressed enter key. return -1 to end the session.
 " }
 
 " hold all registered menu providers.
@@ -33,14 +51,13 @@ let s:default_max_win_height = get(g:, 'g:omnimenu_win_height', 8)
 
 " CORE FUNCTIONS                             {{{1
 function s:update_buffer(provider)            " {{{2
-  let old_line_count = len(get(s:session, 'lines', []))
+  let old_line_count = len(get(s:session, 'buffer', []))
 
   " re-feed data & redraw window only if needed.
-  if !has_key(s:session, 'lines') || has_key(s:session, 'redraw')
-    " re-feed source data.
-    "let s:session.lines = mudox#omnimenu#view#mosaic_view(
-          "\ a:provider, s:session)
-    let s:session.lines = a:provider.feed(s:session)
+  if !has_key(s:session, 'buffer') || has_key(s:session, 'redraw')
+    " regain view.
+    let s:session.buffer = mudox#omnimenu#{s:session.view}_view#view(
+          \ a:provider, s:session)
 
     " reset redraw flag.
     if has_key(s:session, 'redraw')
@@ -56,7 +73,7 @@ function s:update_buffer(provider)            " {{{2
     set modifiable
 
     %delete _
-    call append(0, s:session.lines)
+    call append(0, reverse(s:session.buffer))
     delete _
 
     let &write = old_write
@@ -66,19 +83,17 @@ function s:update_buffer(provider)            " {{{2
     call s:resize_win(a:provider)
   endif
 
-  " relocate current line.
-  " put current line at the last line in the beginning.
-  " if the number of buffer lines changed, reset currrent line to the last
-  " line.
-  if !has_key(s:session, 'lnum')
-    let s:session.lnum = line('$')
+  " reset current cell/line when sessen:buffer changed or in initial drawing.
+  if !has_key(s:session, 'index')
+    let s:session.index = 0
   else
-    if len(s:session.lines) != old_line_count
-      let s:session.lnum = line('$')
+    if len(s:session.buffer) != old_line_count
+      let s:session.index = 0
     endif
   endif
 
-  call cursor(s:session.lnum, 1)
+  " highlight
+  call mudox#omnimenu#{s:session.view}_view#highlight(a:provider, s:session)
   normal! zb
 endfunction "  }}}2
 
@@ -87,14 +102,14 @@ function s:resize_win(provider)               " {{{2
   if !has_key(s:session, 'prev_win_height') " first draw.
     let max_win_height = get(a:provider, 'win_height',
           \ s:default_max_win_height)
-    let win_height = min([max_win_height, len(s:session.lines)])
+    let win_height = min([max_win_height, len(s:session.buffer)])
     execute printf("resize %d", win_height)
     let s:session.prev_win_height = win_height
   else
     if get(a:provider, 'shrinkable', 1) " redraw
       let max_win_height = get(a:provider, 'win_height',
             \ s:default_max_win_height)
-      let win_height = min([max_win_height, len(s:session.lines)])
+      let win_height = min([max_win_height, len(s:session.buffer)])
       if s:session.prev_win_height != win_height
         execute printf("resize %d", win_height)
         let s:session.prev_win_height = win_height
@@ -106,6 +121,12 @@ endfunction "  }}}2
 " core key loop.
 " repeatedly call getchar() to absorb all key pressings from user when
 " omnimenu buffer is open.
+
+function s:pass_key(provider, key) " {{{2
+  return mudox#omnimenu#{s:session.view}_view#handle_key(
+        \ a:provider, s:session, a:key)
+endfunction "  }}}2
+
 function s:key_loop(provider)                 " {{{2
   " list of ascii number of [0-9a-zA-Z]
   let normal_char = range(0x30, 0x39) + range(0x41, 0x5a) + range(0x61, 0x7a)
@@ -123,7 +144,7 @@ function s:key_loop(provider)                 " {{{2
 
     let nr = getchar()
 
-    if index(normal_char, nr) != -1               " alphanumeric
+    if index(normal_char, nr) != -1           " alphanumeric
       let s:session.input = s:session.input . nr2char(nr)
       let s:session.redraw = 1
     elseif nr == "\<BS>"                      " <Backspace>
@@ -132,25 +153,13 @@ function s:key_loop(provider)                 " {{{2
     elseif nr == 21                           " <C-u>
       let s:session.input = ''
       let s:session.redraw = 1
-    elseif nr == 10                           " <C-j>
-      let s:session.lnum = min([line('$'), s:session.lnum + 1])
-    elseif nr == 11                           " <C-k>
-      let s:session.lnum = max([s:session.lnum - 1, 1])
-    elseif nr == 8                            " <C-h>
-      " TODO:
-    elseif nr == 12                           " <C-l>
-      " TODO:
+    elseif index([8, 10, 11, 12], nr) != -1   " <C-j,k,h,l>
+      call s:pass_key(a:provider, nr)
+    elseif nr == 17                           " <C-q>
+      "let s:session.view = (s:session.view ==# 'list') ? 'grid' : 'list'
     elseif nr == 13                           " <Enter>
-      let s:session.lnum = line('.')
-      let s:session.line = getline('.')
-
-      if has_key(a:provider, 'on_enter')
-        call a:provider.on_enter(s:session)
-      else
-        call s:default_on_enter(s:session)
-      endif
-
-      if get(s:session, 'quit', 1)
+      let ret = s:pass_key(a:provider, nr)
+      if ret ==# 'quit'
         break
       endif
     elseif nr == 27 || nr == 3                " <Esc> or <C-c>
@@ -159,6 +168,7 @@ function s:key_loop(provider)                 " {{{2
       break
     endif
   endwhile
+
 endfunction "  }}}2
 
 " highlight part of each line that match against user input.
@@ -180,9 +190,10 @@ function s:check_convert_provider(provider)   " {{{2
   " convert string to underlying dict if needed.
   if type(a:provider) == type('')
     if a:provider !~ '\C\m^g:'
-      let provider_string = 'g:' . a:provider
+      let provider = eval('g:' . a:provider)
+    else
+      let provider = eval(a:provider)
     endif
-    let provider = eval(provider_string)
   elseif type(a:provider) == type({})
     let provider = a:provider
   else
@@ -223,26 +234,6 @@ endfunction "  }}}2
 
 " }}}1
 
-" DEFAULT ACTION FUNCTIONS                   {{{1
-
-" after user pressed a specific key combination (e.g. <Enter>, <C-o>,
-" <C-Enter> ...), a corresponding action function is called with 1 argument:
-" a:provider = {
-"   'title'       :
-"   'description' :
-"   'feed'        :
-"   'on_xxx'      :
-" }
-
-function s:default_on_enter(session)          " {{{2
-  " close omnibuffer & clear cmd line.
-  call mudox#omnimenu#close()
-
-  echo 'You choosed: ' . a:session.line
-endfunction "  }}}2
-
-" }}}1
-
 " PUBLIC FUNCTIONS                           {{{1
 
 " main entry.
@@ -259,8 +250,12 @@ function OmniMenu(provider)                   " {{{2
   let &l:statusline = status_string
 
   " reset for a new session.
-  let s:session = { 'winnr' : winnr(), 'input' : '' }
-  let mdx_omnimenu_session = s:session
+  let s:session = {
+        \ 'winnr' : winnr(),
+        \ 'view'  : get(a:provider, 'view', 'list'),
+        \ 'input' : '',
+        \ 'index' : 0,
+        \ }
 
   " ftplugin/omnimenu.vim will be sourced.
   set filetype=omnimenu
