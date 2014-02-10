@@ -15,7 +15,7 @@ let s:loaded = 1
 "   'index'      : the index of list provided by provider.feed() that current
 "                  selected..
 "   'line'       : selected line content.
-"   'buffer'     : a list of holding all lines rendered to omnimenu window
+"   'data'       : a dict of holding all lines rendered to omnimenu window
 "                  buffer.
 "   'input'      : user input in the cmd line.
 "   'redraw'     : flag indicating the omnimenu buffer need to regen and &
@@ -25,8 +25,7 @@ let s:loaded = 1
 "   'grid.cellw' : grid cell width in chars.
 "   'grid.cols'  : grid width in cells.
 "   'grid.rows'  : grid height in cells.
-"   'grid.x'     : current grid unit's x posistion in cells.
-"   'grid.y'     : current grid unit's y posistion in cells.
+"   'grid.xy'    : method return [x, y] from calculated from index & grid.
 " }
 
 " after user pressed a specific key combination (e.g. <Enter>, <C-o>,
@@ -122,7 +121,7 @@ endfunction "  }}}2
 " repeatedly call getchar() to absorb all key pressings from user when
 " omnimenu buffer is open.
 
-function s:pass_key(provider, key) " {{{2
+function s:view_handle(provider, key)         " {{{2
   return mudox#omnimenu#{s:session.view}_view#handle_key(
         \ a:provider, s:session, a:key)
 endfunction "  }}}2
@@ -154,11 +153,11 @@ function s:key_loop(provider)                 " {{{2
       let s:session.input = ''
       let s:session.redraw = 1
     elseif index([8, 10, 11, 12], nr) != -1   " <C-j,k,h,l>
-      call s:pass_key(a:provider, nr)
+      call s:view_handle(a:provider, nr)
     elseif nr == 17                           " <C-q>
       "let s:session.view = (s:session.view ==# 'list') ? 'grid' : 'list'
     elseif nr == 13                           " <Enter>
-      let ret = s:pass_key(a:provider, nr)
+      let ret = s:view_handle(a:provider, nr)
       if ret ==# 'quit'
         break
       endif
@@ -252,9 +251,13 @@ function OmniMenu(provider)                   " {{{2
   " reset for a new session.
   let s:session = {
         \ 'winnr' : winnr(),
-        \ 'view'  : get(a:provider, 'view', 'list'),
+        \ 'view'  : get(a:provider, 'view', 'grid'),
         \ 'input' : '',
         \ 'index' : 0,
+        \ }
+  let s:session.grid = {
+        \ 'index' : s:session.index,
+        \ 'xy'    : function('s:index2xy'),
         \ }
 
   " ftplugin/omnimenu.vim will be sourced.
@@ -262,6 +265,16 @@ function OmniMenu(provider)                   " {{{2
 
   " entry main key loop.
   call s:key_loop(provider)
+endfunction "  }}}2
+
+" }}}1
+
+" SESSION MEMBER FUNCTIONS                   {{{1
+
+function s:index2xy() dict                      " {{{2
+  let x = self.index / self.cols
+  let y = self.index % self.cols
+  return [x, y]
 endfunction "  }}}2
 
 " }}}1

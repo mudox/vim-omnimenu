@@ -7,56 +7,40 @@ endif
 let s:loaded = 1
 " }}}1
 
-" LIST VIEW.                                               {{{1
-
-function mudox#omnimenu#view#list_view(provider)            " {{{2
-  " TODO:
-endfunction "  }}}2
-
-function mudox#omnimenu#view#list_handle_keys(provider)     " {{{2
-  " TODO:
-endfunction "  }}}2
-
-function mudox#omnimenu#view#list_highlight(provider)       " {{{2
-  " TODO:
-endfunction "  }}}2
-
-" }}}1
-
 " GRID VIEW.                                               {{{1
 
-function mudox#omnimenu#view#grid_view(provider, session)   " {{{2
-  let raw_lines = a:provider.feed(a:session)
+function mudox#omnimenu#grid_view#view(provider, session)   " {{{2
+  let a:session.data = a:provider.feed(a:session)
   let view_lines = []
 
   " get cell width.
   let a:session.grid.cellw = 0
-  for x in raw_lines
+  for x in a:session.data
     if len(x) > a:session.grid.cellw
       let a:session.grid.cellw = len(x)
     endif
   endfor
 
   " grid size.
-  let s:session.grid.cols = winwidth(a:session.winnr) / (a:session.grid.cellw + 1)
-  let s:session.grid.rows = float2nr(ceil(len(raw_lines) * 1.0 /
-        \ s:session.grid.cols))
+  let a:session.grid.cols = winwidth(a:session.winnr) / (a:session.grid.cellw + 1)
+  let a:session.grid.rows = float2nr(ceil(len(a:session.data) * 1.0 /
+        \ a:session.grid.cols))
 
-  " grid lines.
-  for r in range(s:session.grid.rows)
+  " construct grid lines.
+  for line_nr in range(a:session.grid.rows)
     let view_lines = add(view_lines, '')
-    for c in range(s:session.grid.cols)
-      let index = r * s:session.grid.cols + c
-      if index == len(raw_lines)
+    for left in range(a:session.grid.cols)
+      let index = line_nr * a:session.grid.cols + left
+      if index == len(a:session.data)
         break
       endif
 
-      if c == 0
+      if left == 0
         let view_lines[-1] .=
-              \ printf('%-' . a:session.grid.cellw . 's ', raw_lines[index])
+              \ printf('%-' . a:session.grid.cellw . 's ', a:session.data[index])
       else
         let view_lines[-1] .=
-              \ printf('%-' . a:session.grid.cellw . 's ', raw_lines[index])
+              \ printf('%-' . a:session.grid.cellw . 's ', a:session.data[index])
       endif
     endfor
   endfor
@@ -64,22 +48,38 @@ function mudox#omnimenu#view#grid_view(provider, session)   " {{{2
   return reverse(view_lines)
 endfunction "  }}}2
 
-function mudox#omnimenu#view#index2xy(index, session)       " {{{2
-  let x = a:index % a:session.grid.cols
-  let y = a:index / a:session.grid.cols
-  return [x, y]
+function mudox#omnimenu#grid_view#handle_key(provider, session, nr)     " {{{2
+  if a:nr == 10                               " <C-j>
+    let a:session.index -= a:session.grid.cols
+    let a:session.index = max([a:session.index, 0])
+  elseif a:nr == 11                           " <C-k>
+    let a:session.index += a:session.grid.cols
+    let a:session.index = min([a:session.index, len(a:session.data) - 1])
+  elseif a:nr == 8                            " <C-h>
+    let a:session.index -= 1
+    let a:session.index = max([a:session.index, 0])
+  elseif a:nr == 12                           " <C-l>
+    let a:session.index += 1
+    let a:session.index = min([a:session.index, len(a:session.data) - 1])
+  elseif a:nr == 13                           " <Enter>
+    let a:session.line = getline('.')
+
+    " provider MUST have 'on_enter' member.
+    return a:provider.on_enter(a:session)
+  else
+    return 'pass'
+  endif
+
+  return 'handled'
 endfunction "  }}}2
 
-function mudox#omnimenu#view#xy2index(index, session)       " {{{2
-  return y * a:session.grid.cols + x
-endfunction "  }}}2
-
-function mudox#omnimenu#view#grid_handle_keys(provider)     " {{{2
-  " TODO:
-endfunction "  }}}2
-
-function mudox#omnimenu#view#grid_highlight(provider)       " {{{2
-  " TODO:
+function mudox#omnimenu#grid_view#highlight(provider, session)       " {{{2
+  let [line_nr, left] = a:session.grid.xy()
+  let right = left + a:session.grid.cellw
+  let pattern = printf('\%%%dl\%%>%dc\%%<%dc', line_nr, left, right)
+  
+  syntax clear
+  execute 'syntax match Visual /' . pattern . '/'
 endfunction "  }}}2
 
 " }}}1
