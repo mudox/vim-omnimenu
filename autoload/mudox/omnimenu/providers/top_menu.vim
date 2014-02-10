@@ -12,8 +12,7 @@ let s:loaded = 1
 function s:on_enter(session) " {{{2
   " no valid mode selected, no-ops.
   if a:session.line =~# '^\*\* Oops'
-    let a:session.quit = 0
-    return
+    return 'handled'
   endif
 
   " close omnibuffer & clear cmd line.
