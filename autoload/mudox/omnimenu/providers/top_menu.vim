@@ -33,7 +33,7 @@ function s:feed(session) " {{{2
           \ printf("match(v:val, '\\c%s') != -1", a:session.input))
 
     if empty(filtered_line_list)
-      return '** Oops, you need select an existing mode **'
+      return ['** Oops, you need select an existing mode **']
     else
       return filtered_line_list
     endif
