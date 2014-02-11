@@ -43,22 +43,26 @@ function mudox#omnimenu#grid_view#view(provider, session)   " {{{2
     let view_lines = add(view_lines, line)
   endfor
 
-  return reverse(view_lines)
+  return view_lines
 endfunction "  }}}2
 
 function mudox#omnimenu#grid_view#handle_key(provider, session, nr)     " {{{2
   if a:nr == 10                               " <C-j>
-    let a:session.index -= a:session.grid.cols
-    let a:session.index = max([a:session.index, 0])
+    if (a:session.idx - a:session.grid.cols) >= 0
+      let a:session.idx -= a:session.grid.cols
+    endif
   elseif a:nr == 11                           " <C-k>
-    let a:session.index += a:session.grid.cols
-    let a:session.index = min([a:session.index, len(a:session.data) - 1])
+    if (a:session.idx + a:session.grid.cols) < len(a:session.data)
+      let a:session.idx += a:session.grid.cols
+    endif
   elseif a:nr == 8                            " <C-h>
-    let a:session.index -= 1
-    let a:session.index = max([a:session.index, 0])
+    if (a:session.idx - 1) >= 0
+      let a:session.idx -= 1
+    endif
   elseif a:nr == 12                           " <C-l>
-    let a:session.index += 1
-    let a:session.index = min([a:session.index, len(a:session.data) - 1])
+    if (a:session.idx + 1) < len(a:session.data)
+      let a:session.idx += 1
+    endif
   elseif a:nr == 13                           " <Enter>
     let a:session.line = getline('.')
 
@@ -72,12 +76,15 @@ function mudox#omnimenu#grid_view#handle_key(provider, session, nr)     " {{{2
 endfunction "  }}}2
 
 function mudox#omnimenu#grid_view#highlight(provider, session)       " {{{2
-  let [line_nr, left] = a:session.grid.xy()
-  let right = left + a:session.grid.cellw
-  let pattern = printf('\%%%dl\%%>%dc\%%<%dc', line_nr, left, right)
+  let [lo, row] = a:session.grid.xy()
+  let lo = lo * a:session.grid.cellw
+  let hi = lo + a:session.grid.cellw + 1
+  let pattern = printf('\%%%dl\%%>%dc.*\%%<%dc', row, lo, hi)
 
-  syntax clear
-  execute 'syntax match Visual /' . pattern . '/'
+  execute 'syntax match Visual +' . pattern . '+'
+  call cursor(lo, row)
+
+  "let &l:statusline = printf('idx:%d row:%d left:%d right:%d', a:session.idx, row, lo, hi)
 endfunction "  }}}2
 
 " }}}1

@@ -12,7 +12,7 @@ let s:loaded = 1
 " for each invocation of :OmniMenu, s:session is first cleared and then
 " refilled with infomation pertains to this session.
 " s:session = {
-"   'index'      : the index of list provided by provider.feed() that current
+"   'idx'        : the index of list provided by provider.feed() that current
 "                  selected..
 "   'line'       : selected line content.
 "   'data'       : a dict of holding all lines rendered to omnimenu window
@@ -83,17 +83,15 @@ function s:update_buffer(provider)            " {{{2
   endif
 
   " reset current cell/line when sessen:buffer changed or in initial drawing.
-  if !has_key(s:session, 'index')
-    let s:session.index = 0
+  if !has_key(s:session, 'idx')
+    let s:session.idx = 0
   else
     if len(s:session.buffer) != old_line_count
-      let s:session.index = 0
+      let s:session.idx = 0
     endif
   endif
 
-  " highlight
-  call mudox#omnimenu#{s:session.view}_view#highlight(a:provider, s:session)
-  normal! zb
+  "normal! zb
 endfunction "  }}}2
 
 " resize omnimenu window after buffer have been refreshed.
@@ -135,7 +133,7 @@ function s:key_loop(provider)                 " {{{2
 
   while 1 " take charge of all key pressings.
     call s:update_buffer(a:provider)
-    call s:update_highlight()
+    call s:update_highlight(a:provider)
 
     " redraw
     redraw
@@ -170,12 +168,16 @@ function s:key_loop(provider)                 " {{{2
 
 endfunction "  }}}2
 
-" highlight part of each line that match against user input.
-function s:update_highlight()                 " {{{2
+" highlight. 
+function s:update_highlight(provider)                 " {{{2
   syntax clear
+
   if !empty(s:session.input)
-    execute 'syntax match OmniMenuMatched :' . s:session.input . ':'
+    execute 'syntax match OmniMenuMatched +' . s:session.input . '+'
   endif
+
+  " view specific highlightings.
+  call mudox#omnimenu#{s:session.view}_view#highlight(a:provider, s:session)
 endfunction "  }}}2
 
 " 'a:provider' should be a string in the form of e.g.
@@ -253,15 +255,14 @@ function OmniMenu(provider)                   " {{{2
         \ 'winnr' : winnr(),
         \ 'view'  : get(a:provider, 'view', 'grid'),
         \ 'input' : '',
-        \ 'index' : 0,
+        \ 'idx'   : 0,
         \ }
   let s:session.grid = {
-        \ 'index' : s:session.index,
         \ 'xy'    : function('s:index2xy'),
         \ }
 
   " ftplugin/omnimenu.vim will be sourced.
-  set filetype=omnimenu
+  let &filetype = printf('omnimenu_%s_view', s:session.view)
 
   " entry main key loop.
   call s:key_loop(provider)
@@ -272,8 +273,9 @@ endfunction "  }}}2
 " SESSION MEMBER FUNCTIONS                   {{{1
 
 function s:index2xy() dict                      " {{{2
-  let x = self.index / self.cols
-  let y = self.index % self.cols
+  " NOTE: self here points to session.gird.
+  let x = s:session.idx % self.cols
+  let y = self.rows - (s:session.idx / self.cols)
   return [x, y]
 endfunction "  }}}2
 

@@ -13,9 +13,9 @@ let s:loaded = 1
 function mudox#omnimenu#close() " {{{2
   " if omnimenu is the last window, quit the vim.
   if tabpagenr('$') == 1 && winnr('$') == 1
-    quit
+    quit!
   else
-    close | redraw | echo
+    close! | redraw | echo
   endif
 endfunction "  }}}2
 
