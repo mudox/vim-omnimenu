@@ -11,7 +11,6 @@ let s:loaded = 1
 
 function mudox#omnimenu#grid_view#view(provider, session)   " {{{2
   let a:session.data = a:provider.feed(a:session)
-  let view_lines = []
 
   " get cell width.
   let a:session.grid.cellw = 0
@@ -20,29 +19,28 @@ function mudox#omnimenu#grid_view#view(provider, session)   " {{{2
       let a:session.grid.cellw = len(x)
     endif
   endfor
+  let a:session.grid.cellw += 1 " append a trailing space.
 
   " grid size.
-  let a:session.grid.cols = winwidth(a:session.winnr) / (a:session.grid.cellw + 1)
+  let a:session.grid.cols = (winwidth(a:session.winnr) - 2) /
+        \ a:session.grid.cellw
   let a:session.grid.rows = float2nr(ceil(len(a:session.data) * 1.0 /
         \ a:session.grid.cols))
 
   " construct grid lines.
-  for line_nr in range(a:session.grid.rows)
-    let view_lines = add(view_lines, '')
-    for left in range(a:session.grid.cols)
-      let index = line_nr * a:session.grid.cols + left
-      if index == len(a:session.data)
-        break
-      endif
-
-      if left == 0
-        let view_lines[-1] .=
-              \ printf('%-' . a:session.grid.cellw . 's ', a:session.data[index])
+  let view_lines = []
+  for row in range(a:session.grid.rows)
+    let line = ''
+    for column in range(a:session.grid.cols)
+      let idx = row * a:session.grid.cols + column
+      if idx >= len(a:session.data)
+        let line .= printf('%-' . a:session.grid.cellw . 's', '')
       else
-        let view_lines[-1] .=
-              \ printf('%-' . a:session.grid.cellw . 's ', a:session.data[index])
+        let line .= printf('%-' . a:session.grid.cellw . 's',
+              \ a:session.data[idx])
       endif
     endfor
+    let view_lines = add(view_lines, line)
   endfor
 
   return reverse(view_lines)
@@ -77,7 +75,7 @@ function mudox#omnimenu#grid_view#highlight(provider, session)       " {{{2
   let [line_nr, left] = a:session.grid.xy()
   let right = left + a:session.grid.cellw
   let pattern = printf('\%%%dl\%%>%dc\%%<%dc', line_nr, left, right)
-  
+
   syntax clear
   execute 'syntax match Visual /' . pattern . '/'
 endfunction "  }}}2
