@@ -1,15 +1,16 @@
 " vim: foldmethod=marker
 
-" GUARD                                                    {{{1
+" GUARD                                                                 {{{1
 if exists("s:loaded") || &cp || version < 700
   finish
 endif
 let s:loaded = 1
 " }}}1
 
-" GRID VIEW.                                               {{{1
-
-function mudox#omnimenu#grid_view#view(provider, session)   " {{{2
+" return 'quit' to end the session.
+" return 'handled' to suppres main key loop handling.
+" return 'pass' to let main key loop handle the event.
+function mudox#omnimenu#grid_view#view(provider, session)             " {{{1
   let a:session.data = a:provider.feed(a:session)
 
   " get cell width.
@@ -34,7 +35,7 @@ function mudox#omnimenu#grid_view#view(provider, session)   " {{{2
     for column in range(a:session.grid.cols)
       let idx = row * a:session.grid.cols + column
       if idx >= len(a:session.data)
-        let line .= printf('%-' . a:session.grid.cellw . 's', '')
+        let line .= printf('%' . a:session.grid.cellw . 's', '')
       else
         let line .= printf('%-' . a:session.grid.cellw . 's',
               \ a:session.data[idx])
@@ -43,10 +44,14 @@ function mudox#omnimenu#grid_view#view(provider, session)   " {{{2
     let view_lines = add(view_lines, line)
   endfor
 
-  return view_lines
-endfunction "  }}}2
+  " add a trailing cell to each line for beautification.
+   call map(view_lines,
+         \ "v:val . printf('%' . a:session.grid.cellw . 's', '')")
 
-function mudox#omnimenu#grid_view#handle_key(provider, session, nr)     " {{{2
+  return view_lines
+endfunction "  }}}1
+
+function mudox#omnimenu#grid_view#handle_key(provider, session, nr)   " {{{1
   if a:nr == 10                               " <C-j>
     if (a:session.idx - a:session.grid.cols) >= 0
       let a:session.idx -= a:session.grid.cols
@@ -73,18 +78,42 @@ function mudox#omnimenu#grid_view#handle_key(provider, session, nr)     " {{{2
   endif
 
   return 'handled'
-endfunction "  }}}2
+endfunction "  }}}1
 
-function mudox#omnimenu#grid_view#highlight(provider, session)       " {{{2
-  let [lo, row] = a:session.grid.xy()
-  let lo = lo * a:session.grid.cellw
-  let hi = lo + a:session.grid.cellw + 1
-  let pattern = printf('\%%%dl\%%>%dc.*\%%<%dc', row, lo, hi)
+function mudox#omnimenu#grid_view#highlight(provider, session)        " {{{1
+  " mosaic effect.
+  let bg = synIDattr(hlID('Normal'), 'bg#')
 
-  execute 'syntax match Visual +' . pattern . '+'
-  call cursor(lo, row)
+  let bg_list = map([bg[1:2], bg[3:4], bg[5:6]], '"0x" . v:val + 0x8')
+  let bg_list = map(bg_list, 'printf("%x", v:val)')
+  let bg = join(bg_list, '')
+
+  highlight link OmniMenu_Mosaic_Cell_A Normal
+  highlight link OmniMenu_Mosaic_Cell_B Keyword
+  silent! execute printf('highlight OmniMenu_Mosaic_Cell_B guibg=#%s', bg)
+
+  let [hi_0, hi_1] = ['OmniMenu_Mosaic_Cell_A', 'OmniMenu_Mosaic_Cell_B']
+  for r in range(1, a:session.grid.rows)
+    for c in range(a:session.grid.cols + 2)
+      let head = c * a:session.grid.cellw
+      let tail = head + a:session.grid.cellw + 2
+      call s:hi_cell(r, head, tail, hi_{c % 2})
+    endfor
+    let [hi_0, hi_1] = [hi_1, hi_0]
+  endfor
+
+  " highlight current cell.
+  let [head, row] = a:session.grid.xy()
+  let head = head * a:session.grid.cellw
+  let tail = head + a:session.grid.cellw + 2
+
+  call s:hi_cell(row, head, tail, 'Visual')
+  call cursor(head, row)
 
   "let &l:statusline = printf('idx:%d row:%d left:%d right:%d', a:session.idx, row, lo, hi)
-endfunction "  }}}2
+endfunction "  }}}1
 
-" }}}1
+function s:hi_cell(row, head, tail, group) " {{{2
+  let cell_pat = printf('\%%%dl\%%>%dc.*\%%<%dc', a:row, a:head, a:tail)
+  execute printf('syntax match %s +%s+', a:group, cell_pat)
+endfunction "  }}}2

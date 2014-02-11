@@ -50,13 +50,22 @@ let s:default_max_win_height = get(g:, 'g:omnimenu_win_height', 8)
 
 " CORE FUNCTIONS                             {{{1
 function s:update_buffer(provider)            " {{{2
-  let old_line_count = len(get(s:session, 'buffer', []))
+  let old_line_count = len(get(s:session, 'data', []))
 
   " re-feed data & redraw window only if needed.
   if !has_key(s:session, 'buffer') || has_key(s:session, 'redraw')
     " regain view.
     let s:session.buffer = mudox#omnimenu#{s:session.view}_view#view(
           \ a:provider, s:session)
+
+    " reset current cell/line when sessen.data changed or in initial drawing.
+    if !has_key(s:session, 'idx')
+      let s:session.idx = 0
+    else
+      if len(s:session.data) != old_line_count
+        let s:session.idx = 0
+      endif
+    endif
 
     " reset redraw flag.
     if has_key(s:session, 'redraw')
@@ -82,16 +91,6 @@ function s:update_buffer(provider)            " {{{2
     call s:resize_win(a:provider)
   endif
 
-  " reset current cell/line when sessen:buffer changed or in initial drawing.
-  if !has_key(s:session, 'idx')
-    let s:session.idx = 0
-  else
-    if len(s:session.buffer) != old_line_count
-      let s:session.idx = 0
-    endif
-  endif
-
-  "normal! zb
 endfunction "  }}}2
 
 " resize omnimenu window after buffer have been refreshed.
@@ -170,11 +169,16 @@ endfunction "  }}}2
 
 " highlight. 
 function s:update_highlight(provider)                 " {{{2
+
+  " syntax & highlight
   syntax clear
 
   if !empty(s:session.input)
     execute 'syntax match OmniMenuMatched +' . s:session.input . '+'
   endif
+
+  highlight link OmniMenuMatched MoreMsg
+  highlight OmniMenuMatched gui=bold
 
   " view specific highlightings.
   call mudox#omnimenu#{s:session.view}_view#highlight(a:provider, s:session)
