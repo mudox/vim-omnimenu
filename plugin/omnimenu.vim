@@ -89,6 +89,8 @@ function s:update_buffer(provider)            " {{{2
 
     " resize window.
     call s:resize_win(a:provider)
+
+    normal! zb
   endif
 
 endfunction "  }}}2
@@ -167,7 +169,7 @@ function s:key_loop(provider)                 " {{{2
 
 endfunction "  }}}2
 
-" highlight. 
+" highlight.
 function s:update_highlight(provider)                 " {{{2
 
   " syntax & highlight
