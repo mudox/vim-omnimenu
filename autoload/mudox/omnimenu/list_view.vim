@@ -34,5 +34,5 @@ endfunction "  }}}1
 
 function mudox#omnimenu#list_view#highlight(provider, session)        " {{{1
   " set current line.
-  call cursor(line('$') - a:session.index, 0)
+  call cursor(line('$') - a:session.idx, 0)
 endfunction "  }}}1

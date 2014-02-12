@@ -16,7 +16,7 @@ function mudox#omnimenu#close() " {{{2
     quit!
   else
     close! | redraw | echo
-    "wincmd p
+    wincmd p
   endif
 endfunction "  }}}2
 
