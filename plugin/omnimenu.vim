@@ -258,13 +258,14 @@ function OmniMenu(provider)                   " {{{2
 
   " reset for a new session.
   let s:session = {
-        \ 'winnr' : winnr(),
-        \ 'view'  : get(a:provider, 'view', 'grid'),
-        \ 'input' : '',
-        \ 'idx'   : 0,
+        \ 'winnr'  : winnr(),
+        \ 'view'   : get(a:provider, 'view', 'grid'),
+        \ 'input'  : '',
+        \ 'idx'    : 0,
+        \ 'getsel' : function('s:getsel'),
         \ }
   let s:session.grid = {
-        \ 'xy'    : function('s:index2xy'),
+        \ 'getxy'     : function('s:index2xy'),
         \ }
 
   " ftplugin/omnimenu.vim will be sourced.
@@ -285,6 +286,10 @@ function s:index2xy() dict                      " {{{2
   return [x, y]
 endfunction "  }}}2
 
+function s:getsel() dict                      " {{{2
+  " NOTE: self here points to session.
+  return self.data[self.idx]
+endfunction "  }}}2
 " }}}1
 
 " COMMANDS & MAPPINGS                        {{{1

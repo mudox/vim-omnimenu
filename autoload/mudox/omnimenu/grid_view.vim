@@ -103,7 +103,7 @@ function mudox#omnimenu#grid_view#highlight(provider, session)        " {{{1
   endfor
 
   " highlight current cell.
-  let [head, row] = a:session.grid.xy()
+  let [head, row] = a:session.grid.getxy()
   let head = head * a:session.grid.cellw
   let tail = head + a:session.grid.cellw + 2
 
