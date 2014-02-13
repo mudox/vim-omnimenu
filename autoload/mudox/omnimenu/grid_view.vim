@@ -82,25 +82,27 @@ endfunction "  }}}1
 
 function mudox#omnimenu#grid_view#highlight(provider, session)        " {{{1
   if !exists('s:old_cellw') || s:old_cellw != a:session.grid.cellw
+    syntax clear
+
     " mosaic effect.
-    let bg = synIDattr(hlID('Normal'), 'bg#')
+    " two colors
+    "let [hi_0, hi_1] = ['OmniMenuMosaicCellA', 'OmniMenuMosaicCallB']
+    "for r in range(1, a:session.grid.rows)
+      "for c in range(a:session.grid.cols + 2)
+        "let head = c * a:session.grid.cellw
+        "let tail = head + a:session.grid.cellw + 2
+        "call s:hi_cell(r, head, tail, hi_{c % 2})
+      "endfor
+      "let [hi_0, hi_1] = [hi_1, hi_0]
+    "endfor
 
-    let bg_list = map([bg[1:2], bg[3:4], bg[5:6]], '"0x" . v:val + 0x8')
-    let bg_list = map(bg_list, 'printf("%x", v:val)')
-    let bg = join(bg_list, '')
-
-    highlight link OmniMenu_Mosaic_Cell_A Normal
-    highlight link OmniMenu_Mosaic_Cell_B Keyword
-    silent! execute printf('highlight OmniMenu_Mosaic_Cell_B guibg=#%s', bg)
-
-    let [hi_0, hi_1] = ['OmniMenu_Mosaic_Cell_A', 'OmniMenu_Mosaic_Cell_B']
+    " one colors
     for r in range(1, a:session.grid.rows)
-      for c in range(a:session.grid.cols + 2)
+      for c in range(r % 2, a:session.grid.cols + 2, 2)
         let head = c * a:session.grid.cellw
         let tail = head + a:session.grid.cellw + 2
-        call s:hi_cell(r, head, tail, hi_{c % 2})
+        call s:hi_cell(r, head, tail, 'OmniMenuMosaicCallB')
       endfor
-      let [hi_0, hi_1] = [hi_1, hi_0]
     endfor
 
     let s:old_cellw = a:session.grid.cellw
@@ -109,13 +111,14 @@ function mudox#omnimenu#grid_view#highlight(provider, session)        " {{{1
   " highlight current cell.
   let [head, row] = a:session.grid.getxy()
   let head = head * a:session.grid.cellw
-  let tail = head + a:session.grid.cellw + 2
+  let tail = head + a:session.grid.cellw + 1
 
   call s:hi_cur_cell(row, head, tail, 'Visual')
   call cursor(row, head)
 
   "let &l:statusline = printf('idx:%d row:%d left:%d right:%d', a:session.idx, row, head, head)
-  "let &l:statusline =  printf('wrap: %s, filetype: %s', &l:wrap, &filetype)
+  "let &l:statusline = printf('wrap: %s, filetype: %s', &l:wrap, &filetype)
+  "let &l:statusline = printf('cnt: %d', s:cnt)
 endfunction "  }}}1
 
 function s:hi_cell(row, head, tail, group)                            " {{{1
