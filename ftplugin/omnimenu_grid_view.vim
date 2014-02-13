@@ -6,10 +6,6 @@ setlocal nowrap
 
 " GRID VIEW HIGHLIGHT SETTING. {{{1
 
-" highlight matched part against session.input
-let s:fg = synIDattr(hlID('Keyword'), 'fg#')
-execute printf('highlight OmniMenuMatched gui=bold guifg=%s guibg=NONE', s:fg)
-
 " mosiac effect.
 function! s:mosaic_highlight() " {{{2
   let bg = synIDattr(hlID('Normal'), 'bg#')
