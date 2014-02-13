@@ -107,7 +107,7 @@ function mudox#omnimenu#grid_view#highlight(provider, session)        " {{{1
   let head = head * a:session.grid.cellw
   let tail = head + a:session.grid.cellw + 2
 
-  call s:hi_cell(row, head, tail, 'Visual')
+  call s:hi_cur_cell(row, head, tail, 'Visual')
   call cursor(row, head)
 
   "let &l:statusline = printf('idx:%d row:%d left:%d right:%d', a:session.idx, row, head, head)
@@ -117,4 +117,14 @@ endfunction "  }}}1
 function s:hi_cell(row, head, tail, group)                            " {{{1
   let cell_pat = printf('\%%%dl\%%>%dc.*\%%<%dc', a:row, a:head, a:tail)
   execute printf('syntax match %s +%s+', a:group, cell_pat)
+endfunction "  }}}1
+
+function s:hi_cur_cell(row, head, tail, group)                            " {{{1
+  " first clear last current cell.
+  if exists('s:cur_cell_hi_id')
+    call matchdelete(s:cur_cell_hi_id)
+  endif
+
+  let cell_pat = printf('\%%%dl\%%>%dc.*\%%<%dc', a:row, a:head, a:tail)
+  let s:cur_cell_hi_id = matchadd('Visual', cell_pat, 100)
 endfunction "  }}}1
