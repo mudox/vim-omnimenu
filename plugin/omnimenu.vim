@@ -116,15 +116,14 @@ function s:resize_win(provider)               " {{{2
   endif
 endfunction "  }}}2
 
-" core key loop.
-" repeatedly call getchar() to absorb all key pressings from user when
-" omnimenu buffer is open.
-
 function s:view_handle(provider, key)         " {{{2
   return mudox#omnimenu#{s:session.view}_view#handle_key(
         \ a:provider, s:session, a:key)
 endfunction "  }}}2
 
+" core key loop.
+" repeatedly call getchar() to absorb all key pressings from user when
+" omnimenu buffer is open.
 function s:key_loop(provider)                 " {{{2
   " list of ascii number of [0-9a-zA-Z]
   let normal_char = range(0x30, 0x39) + range(0x41, 0x5a) + range(0x61, 0x7a)
@@ -173,9 +172,15 @@ endfunction "  }}}2
 function s:update_highlight(provider)                 " {{{2
 
   " highlight matched part against session.input
-  if !exists('s:old_input') || s:old_input !=# s:session.input
+  if !exists('s:session.old_input') ||
+        \ s:session.old_input !=# s:session.input
+    if exists('s:session.machted_hlid')
+      call matchdelete(s:session.machted_hlid)
+      unlet s:session.machted_hlid
+    endif
+
     if !empty(s:session.input)
-      let s:input_hi_id = matchadd('OmniMenuMatched', s:session.input, 50)
+      let s:session.machted_hlid = matchadd('MoreMsg', s:session.input, 50)
     endif
   endif
 

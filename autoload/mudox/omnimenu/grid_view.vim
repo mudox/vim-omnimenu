@@ -81,19 +81,20 @@ function mudox#omnimenu#grid_view#handle_key(provider, session, nr)   " {{{1
 endfunction "  }}}1
 
 function mudox#omnimenu#grid_view#highlight(provider, session)        " {{{1
-  if !exists('s:old_cellw') || s:old_cellw != a:session.grid.cellw
+  if !exists('a:session.grid.old_cellw') ||
+        \ a:session.grid.old_cellw != a:session.grid.cellw
     syntax clear
 
     " mosaic effect.
     " two colors
     "let [hi_0, hi_1] = ['OmniMenuMosaicCellA', 'OmniMenuMosaicCallB']
     "for r in range(1, a:session.grid.rows)
-      "for c in range(a:session.grid.cols + 2)
-        "let head = c * a:session.grid.cellw
-        "let tail = head + a:session.grid.cellw + 2
-        "call s:hi_cell(r, head, tail, hi_{c % 2})
-      "endfor
-      "let [hi_0, hi_1] = [hi_1, hi_0]
+    "for c in range(a:session.grid.cols + 2)
+    "let head = c * a:session.grid.cellw
+    "let tail = head + a:session.grid.cellw + 2
+    "call s:hi_cell(r, head, tail, hi_{c % 2})
+    "endfor
+    "let [hi_0, hi_1] = [hi_1, hi_0]
     "endfor
 
     " one colors
@@ -113,7 +114,7 @@ function mudox#omnimenu#grid_view#highlight(provider, session)        " {{{1
   let head = head * a:session.grid.cellw
   let tail = head + a:session.grid.cellw + 1
 
-  call s:hi_cur_cell(row, head, tail, 'Visual')
+  call s:hi_cur_cell(row, head, tail, 'Visual', a:session)
   call cursor(row, head)
 
   "let &l:statusline = printf('idx:%d row:%d left:%d right:%d', a:session.idx, row, head, head)
@@ -126,12 +127,13 @@ function s:hi_cell(row, head, tail, group)                            " {{{1
   execute printf('syntax match %s +%s+', a:group, cell_pat)
 endfunction "  }}}1
 
-function s:hi_cur_cell(row, head, tail, group)                        " {{{1
+function s:hi_cur_cell(row, head, tail, group, session)                        " {{{1
   " first clear last current cell.
-  if exists('s:cur_cell_hi_id')
-    call matchdelete(s:cur_cell_hi_id)
+  if exists('a:session.cur_cell_hlid')
+    call matchdelete(a:session.cur_cell_hlid)
+    unlet a:session.cur_cell_hlid
   endif
 
   let cell_pat = printf('\%%%dl\%%>%dc.*\%%<%dc', a:row, a:head, a:tail)
-  let s:cur_cell_hi_id = matchadd(a:group, cell_pat, 100)
+  let a:session.cur_cell_hlid = matchadd(a:group, cell_pat, 100)
 endfunction "  }}}1
