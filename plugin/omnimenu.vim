@@ -172,15 +172,12 @@ endfunction "  }}}2
 " highlight.
 function s:update_highlight(provider)                 " {{{2
 
-  " syntax & highlight
-  syntax clear
-
-  if !empty(s:session.input)
-    execute 'syntax match OmniMenuMatched +' . s:session.input . '+'
+  " highlight matched part against session.input
+  if !exists('s:old_input') || s:old_input !=# s:session.input
+    if !empty(s:session.input)
+      let s:input_hi_id = matchadd('OmniMenuMatched', s:session.input, 50)
+    endif
   endif
-
-  highlight link OmniMenuMatched MoreMsg
-  highlight OmniMenuMatched gui=bold
 
   " view specific highlightings.
   call mudox#omnimenu#{s:session.view}_view#highlight(a:provider, s:session)
