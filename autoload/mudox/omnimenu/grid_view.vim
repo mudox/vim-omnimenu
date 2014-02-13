@@ -81,26 +81,30 @@ function mudox#omnimenu#grid_view#handle_key(provider, session, nr)   " {{{1
 endfunction "  }}}1
 
 function mudox#omnimenu#grid_view#highlight(provider, session)        " {{{1
-  " mosaic effect.
-  let bg = synIDattr(hlID('Normal'), 'bg#')
+  if !exists('s:old_cellw') || s:old_cellw != a:session.grid.cellw
+    " mosaic effect.
+    let bg = synIDattr(hlID('Normal'), 'bg#')
 
-  let bg_list = map([bg[1:2], bg[3:4], bg[5:6]], '"0x" . v:val + 0x8')
-  let bg_list = map(bg_list, 'printf("%x", v:val)')
-  let bg = join(bg_list, '')
+    let bg_list = map([bg[1:2], bg[3:4], bg[5:6]], '"0x" . v:val + 0x8')
+    let bg_list = map(bg_list, 'printf("%x", v:val)')
+    let bg = join(bg_list, '')
 
-  highlight link OmniMenu_Mosaic_Cell_A Normal
-  highlight link OmniMenu_Mosaic_Cell_B Keyword
-  silent! execute printf('highlight OmniMenu_Mosaic_Cell_B guibg=#%s', bg)
+    highlight link OmniMenu_Mosaic_Cell_A Normal
+    highlight link OmniMenu_Mosaic_Cell_B Keyword
+    silent! execute printf('highlight OmniMenu_Mosaic_Cell_B guibg=#%s', bg)
 
-  let [hi_0, hi_1] = ['OmniMenu_Mosaic_Cell_A', 'OmniMenu_Mosaic_Cell_B']
-  for r in range(1, a:session.grid.rows)
-    for c in range(a:session.grid.cols + 2)
-      let head = c * a:session.grid.cellw
-      let tail = head + a:session.grid.cellw + 2
-      call s:hi_cell(r, head, tail, hi_{c % 2})
+    let [hi_0, hi_1] = ['OmniMenu_Mosaic_Cell_A', 'OmniMenu_Mosaic_Cell_B']
+    for r in range(1, a:session.grid.rows)
+      for c in range(a:session.grid.cols + 2)
+        let head = c * a:session.grid.cellw
+        let tail = head + a:session.grid.cellw + 2
+        call s:hi_cell(r, head, tail, hi_{c % 2})
+      endfor
+      let [hi_0, hi_1] = [hi_1, hi_0]
     endfor
-    let [hi_0, hi_1] = [hi_1, hi_0]
-  endfor
+
+    let s:old_cellw = a:session.grid.cellw
+  endif
 
   " highlight current cell.
   let [head, row] = a:session.grid.getxy()
@@ -119,12 +123,12 @@ function s:hi_cell(row, head, tail, group)                            " {{{1
   execute printf('syntax match %s +%s+', a:group, cell_pat)
 endfunction "  }}}1
 
-function s:hi_cur_cell(row, head, tail, group)                            " {{{1
+function s:hi_cur_cell(row, head, tail, group)                        " {{{1
   " first clear last current cell.
   if exists('s:cur_cell_hi_id')
     call matchdelete(s:cur_cell_hi_id)
   endif
 
   let cell_pat = printf('\%%%dl\%%>%dc.*\%%<%dc', a:row, a:head, a:tail)
-  let s:cur_cell_hi_id = matchadd('Visual', cell_pat, 100)
+  let s:cur_cell_hi_id = matchadd(a:group, cell_pat, 100)
 endfunction "  }}}1
