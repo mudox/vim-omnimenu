@@ -15,7 +15,7 @@ let s:loaded = 1
 "   'idx'        : the index of list provided by provider.feed() that current
 "                  selected..
 "   'line'       : selected line content.
-"   'data'       : a dict of holding all lines rendered to omnimenu window
+"   'data'       : a list of holding all lines rendered to omnimenu window
 "                  buffer.
 "   'input'      : user input in the cmd line.
 "   'redraw'     : flag indicating the omnimenu buffer need to regen and &
@@ -53,16 +53,19 @@ let s:default_max_win_height = get(g:, 'g:omnimenu_win_height', 8)
 function s:bury_cursor()                      " {{{2
   " save old settings.
   let s:cursor_id = hlID('Cursor')
-  let s:cursor_fg = synIDattr(s:cursor_id, 'fg#')
-  let s:cursor_bg = synIDattr(s:cursor_id, 'bg#')
+  let s:cursor_fg = synIDattr(s:cursor_id, 'fg')
+  let s:cursor_bg = synIDattr(s:cursor_id, 'bg')
 
   " bury it.
   highlight clear Cursor
 endfunction "  }}}2
 
 function s:restore_cursor()                   " {{{2
-  execute printf('highlight Cursor guifg=%s guibg=%s',
-        \ s:cursor_fg, s:cursor_bg)
+  let mode = has('gui_running') ? 'gui' : 'cterm'
+  let fg = !empty(s:cursor_fg) ? printf('%sfg=%s', mode, s:cursor_fg) : ''
+  let bg = !empty(s:cursor_bg) ? printf('%sbg=%s', mode, s:cursor_bg) : ''
+
+  silent execute printf('highlight Cursor %s %s', fg, bg)
 endfunction "  }}}2
 
 function s:view_handle(provider, key)         " {{{2
