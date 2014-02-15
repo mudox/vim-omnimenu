@@ -13,20 +13,21 @@ let s:loaded = 1
 function mudox#omnimenu#grid_view#view(provider, session)             " {{{1
   let a:session.data = a:provider.feed(a:session)
 
-  " get cell width.
+  " figure out cell width.
   let a:session.grid.cellw = 0
   for x in a:session.data
     if len(x) > a:session.grid.cellw
       let a:session.grid.cellw = len(x)
     endif
   endfor
-  let a:session.grid.cellw += 1 " append a trailing space.
+  let a:session.grid.cellw += 1 " append a trailing space for gutter.
 
-  " grid size.
-  let a:session.grid.cols = (winwidth(a:session.winnr) - 2) /
+  " grid columns & rows.
+  let a:session.grid.cols = (winwidth(a:session.winnr) - 1) /
         \ a:session.grid.cellw
-  let a:session.grid.rows = float2nr(ceil(len(a:session.data) * 1.0 /
+  let data_rows = float2nr(ceil(len(a:session.data) * 1.0 /
         \ a:session.grid.cols))
+  let a:session.grid.rows = min([a:session.max_height, data_rows])
 
   " construct grid lines.
   let view_lines = []
@@ -57,7 +58,8 @@ function mudox#omnimenu#grid_view#handle_key(provider, session, nr)   " {{{1
       let a:session.idx -= a:session.grid.cols
     endif
   elseif a:nr == 11                           " <C-k>
-    if (a:session.idx + a:session.grid.cols) < len(a:session.data)
+    if line('.') != 1 &&
+          \ (a:session.idx + a:session.grid.cols) < len(a:session.data)
       let a:session.idx += a:session.grid.cols
     endif
   elseif a:nr == 8                            " <C-h>
@@ -65,7 +67,8 @@ function mudox#omnimenu#grid_view#handle_key(provider, session, nr)   " {{{1
       let a:session.idx -= 1
     endif
   elseif a:nr == 12                           " <C-l>
-    if (a:session.idx + 1) < len(a:session.data)
+    if a:session.idx + 1 < a:session.grid.rows * a:session.grid.cols &&
+          \ (a:session.idx + 1) < len(a:session.data)
       let a:session.idx += 1
     endif
   elseif a:nr == 13                           " <Enter>
@@ -127,7 +130,7 @@ function s:hi_cell(row, head, tail, group)                            " {{{1
   execute printf('syntax match %s +%s+', a:group, cell_pat)
 endfunction "  }}}1
 
-function s:hi_cur_cell(row, head, tail, group, session)                        " {{{1
+function s:hi_cur_cell(row, head, tail, group, session)               " {{{1
   " first clear last current cell.
   if exists('a:session.cur_cell_hlid')
     call matchdelete(a:session.cur_cell_hlid)
