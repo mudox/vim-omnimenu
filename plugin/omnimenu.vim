@@ -12,6 +12,7 @@ let s:loaded = 1
 " for each invocation of :OmniMenu, s:session is first cleared and then
 " refilled with infomation pertains to this session.
 " s:session = {
+"   'max_heigh'  : max height of omnimenu window.
 "   'idx'        : the index of list provided by provider.feed() that current
 "                  selected..
 "   'line'       : selected line content.
@@ -42,7 +43,7 @@ let s:providers = []
 
 " omnimenu window max height in lines.
 " if less lines are provided, the window will shrink accordingly.
-let s:default_max_win_height = get(g:, 'g:omnimenu_win_height', 8)
+let s:win_max_height = get(g:, 'g:omnimenu_win_height', 8)
 
 " menu contents providers.
 
@@ -50,7 +51,7 @@ let s:default_max_win_height = get(g:, 'g:omnimenu_win_height', 8)
 
 " HELPER FUNCTIONS                           {{{1
 
-function s:bury_cursor()                      " {{{2
+function s:inhume_cursor()                      " {{{2
   " save old settings.
   let s:cursor_id = hlID('Cursor')
   let s:cursor_fg = synIDattr(s:cursor_id, 'fg')
@@ -60,7 +61,7 @@ function s:bury_cursor()                      " {{{2
   highlight clear Cursor
 endfunction "  }}}2
 
-function s:restore_cursor()                   " {{{2
+function s:exhume_cursor()                   " {{{2
   let mode = has('gui_running') ? 'gui' : 'cterm'
   let fg = !empty(s:cursor_fg) ? printf('%sfg=%s', mode, s:cursor_fg) : ''
   let bg = !empty(s:cursor_bg) ? printf('%sbg=%s', mode, s:cursor_bg) : ''
@@ -71,6 +72,21 @@ endfunction "  }}}2
 function s:view_handle(provider, key)         " {{{2
   return mudox#omnimenu#{s:session.view}_view#handle_key(
         \ a:provider, s:session, a:key)
+endfunction "  }}}2
+
+function s:new_session(provider) " {{{2
+  let s:session = {
+        \ 'winnr'      : winnr(),
+        \ 'view'       : get(a:provider, 'view', 'grid'),
+        \ 'input'      : '',
+        \ 'max_height' : get(a:provider, 'win_height', s:win_max_height),
+        \ 'idx'        : 0,
+        \ 'getsel'     : function('s:getsel'),
+        \ }
+
+  let s:session.grid = {
+        \ 'getxy'     : function('s:index2xy'),
+        \ }
 endfunction "  }}}2
 
 " }}}1
@@ -125,16 +141,14 @@ endfunction "  }}}2
 " resize omnimenu window after buffer have been refreshed.
 function s:resize_win(provider)               " {{{2
   if !has_key(s:session, 'prev_win_height') " first draw.
-    let max_win_height = get(a:provider, 'win_height',
-          \ s:default_max_win_height)
-    let win_height = min([max_win_height, len(s:session.buffer)])
+    let win_height = min([s:session.max_height, len(s:session.buffer)])
     execute printf("resize %d", win_height)
     let s:session.prev_win_height = win_height
   else
     if get(a:provider, 'shrinkable', 1) " redraw
-      let max_win_height = get(a:provider, 'win_height',
-            \ s:default_max_win_height)
-      let win_height = min([max_win_height, len(s:session.buffer)])
+      let s:session.max_height = get(a:provider, 'win_height',
+            \ s:win_max_height)
+      let win_height = min([s:session.max_height, len(s:session.buffer)])
       if s:session.prev_win_height != win_height
         execute printf("resize %d", win_height)
         let s:session.prev_win_height = win_height
@@ -271,28 +285,19 @@ endfunction "  }}}2
 function OmniMenu(provider)                   " {{{2
   let provider = s:check_convert_provider(a:provider)
 
-  call s:bury_cursor()
-
   " open a new window in the user specified way, 'new' if not.
   " suppress any autocmd events.
   silent execute printf("noautocmd %s __mudox__omnimenu__",
         \ get(provider, 'open_way', 'botright 1new'))
 
-  " set status line.
+  " set status line & cursor.
   let status_string = 'OmniMenu > ' . provider['title']
   let &l:statusline = status_string
 
+  call s:inhume_cursor()
+
   " reset for a new session.
-  let s:session = {
-        \ 'winnr'  : winnr(),
-        \ 'view'   : get(a:provider, 'view', 'grid'),
-        \ 'input'  : '',
-        \ 'idx'    : 0,
-        \ 'getsel' : function('s:getsel'),
-        \ }
-  let s:session.grid = {
-        \ 'getxy'     : function('s:index2xy'),
-        \ }
+  call s:new_session(a:provider)
 
   " ftplugin/omnimenu.vim will be sourced.
   let &filetype = printf('omnimenu_%s_view', s:session.view)
@@ -300,7 +305,7 @@ function OmniMenu(provider)                   " {{{2
   " entry main key loop.
   call s:key_loop(provider)
 
-  call s:restore_cursor()
+  call s:exhume_cursor()
 endfunction "  }}}2
 
 " }}}1
