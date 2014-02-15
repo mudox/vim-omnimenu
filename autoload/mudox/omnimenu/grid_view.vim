@@ -89,7 +89,8 @@ function mudox#omnimenu#grid_view#highlight(provider, session)        " {{{1
     syntax clear
 
     " mosaic effect.
-    " two colors
+
+    " two colors deprecated                                                {{{2
     "let [hi_0, hi_1] = ['OmniMenuMosaicCellA', 'OmniMenuMosaicCallB']
     "for r in range(1, a:session.grid.rows)
     "for c in range(a:session.grid.cols + 2)
@@ -99,6 +100,7 @@ function mudox#omnimenu#grid_view#highlight(provider, session)        " {{{1
     "endfor
     "let [hi_0, hi_1] = [hi_1, hi_0]
     "endfor
+    "}}}2
 
     " one colors
     for r in range(1, a:session.grid.rows)

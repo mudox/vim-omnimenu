@@ -51,7 +51,7 @@ let s:win_max_height = get(g:, 'g:omnimenu_win_height', 8)
 
 " HELPER FUNCTIONS                           {{{1
 
-function s:inhume_cursor()                      " {{{2
+function s:inhume_cursor()                    " {{{2
   " save old settings.
   let s:cursor_id = hlID('Cursor')
   let s:cursor_fg = synIDattr(s:cursor_id, 'fg')
@@ -61,7 +61,7 @@ function s:inhume_cursor()                      " {{{2
   highlight clear Cursor
 endfunction "  }}}2
 
-function s:exhume_cursor()                   " {{{2
+function s:exhume_cursor()                    " {{{2
   let mode = has('gui_running') ? 'gui' : 'cterm'
   let fg = !empty(s:cursor_fg) ? printf('%sfg=%s', mode, s:cursor_fg) : ''
   let bg = !empty(s:cursor_bg) ? printf('%sbg=%s', mode, s:cursor_bg) : ''
@@ -74,7 +74,7 @@ function s:view_handle(provider, key)         " {{{2
         \ a:provider, s:session, a:key)
 endfunction "  }}}2
 
-function s:new_session(provider) " {{{2
+function s:new_session(provider)              " {{{2
   let s:session = {
         \ 'winnr'      : winnr(),
         \ 'view'       : get(a:provider, 'view', 'grid'),
