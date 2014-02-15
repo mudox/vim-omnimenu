@@ -48,6 +48,30 @@ let s:default_max_win_height = get(g:, 'g:omnimenu_win_height', 8)
 
 " }}}1
 
+" HELPER FUNCTIONS                           {{{1
+
+function s:bury_cursor()                      " {{{2
+  " save old settings.
+  let s:cursor_id = hlID('Cursor')
+  let s:cursor_fg = synIDattr(s:cursor_id, 'fg#')
+  let s:cursor_bg = synIDattr(s:cursor_id, 'bg#')
+
+  " bury it.
+  highlight clear Cursor
+endfunction "  }}}2
+
+function s:restore_cursor()                   " {{{2
+  execute printf('highlight Cursor guifg=%s guibg=%s',
+        \ s:cursor_fg, s:cursor_bg)
+endfunction "  }}}2
+
+function s:view_handle(provider, key)         " {{{2
+  return mudox#omnimenu#{s:session.view}_view#handle_key(
+        \ a:provider, s:session, a:key)
+endfunction "  }}}2
+
+" }}}1
+
 " CORE FUNCTIONS                             {{{1
 function s:update_buffer(provider)            " {{{2
   let old_line_count = len(get(s:session, 'data', []))
@@ -116,11 +140,6 @@ function s:resize_win(provider)               " {{{2
   endif
 endfunction "  }}}2
 
-function s:view_handle(provider, key)         " {{{2
-  return mudox#omnimenu#{s:session.view}_view#handle_key(
-        \ a:provider, s:session, a:key)
-endfunction "  }}}2
-
 " core key loop.
 " repeatedly call getchar() to absorb all key pressings from user when
 " omnimenu buffer is open.
@@ -137,7 +156,7 @@ function s:key_loop(provider)                 " {{{2
 
     " redraw
     redraw
-    echo '>>> ' . s:session.input
+    echo '>>> ' . s:session.input . '_'
 
     let nr = getchar()
 
@@ -169,7 +188,7 @@ function s:key_loop(provider)                 " {{{2
 endfunction "  }}}2
 
 " highlight.
-function s:update_highlight(provider)                 " {{{2
+function s:update_highlight(provider)         " {{{2
 
   " highlight matched part against session.input
   if !exists('s:session.old_input') ||
@@ -249,6 +268,8 @@ endfunction "  }}}2
 function OmniMenu(provider)                   " {{{2
   let provider = s:check_convert_provider(a:provider)
 
+  call s:bury_cursor()
+
   " open a new window in the user specified way, 'new' if not.
   " suppress any autocmd events.
   silent execute printf("noautocmd %s __mudox__omnimenu__",
@@ -275,13 +296,15 @@ function OmniMenu(provider)                   " {{{2
 
   " entry main key loop.
   call s:key_loop(provider)
+
+  call s:restore_cursor()
 endfunction "  }}}2
 
 " }}}1
 
 " SESSION MEMBER FUNCTIONS                   {{{1
 
-function s:index2xy() dict                      " {{{2
+function s:index2xy() dict                    " {{{2
   " NOTE: self here points to session.gird.
   let x = s:session.idx % self.cols
   let y = self.rows - (s:session.idx / self.cols)
@@ -292,6 +315,7 @@ function s:getsel() dict                      " {{{2
   " NOTE: self here points to session.
   return self.data[self.idx]
 endfunction "  }}}2
+
 " }}}1
 
 " COMMANDS & MAPPINGS                        {{{1
