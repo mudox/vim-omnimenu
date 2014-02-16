@@ -1,16 +1,17 @@
 " vim: foldmethod=marker
 
-" GUARD                                                                 {{{1
+" GUARD                                                              {{{1
 if exists("s:loaded") || &cp || version < 700
   finish
 endif
 let s:loaded = 1
 " }}}1
 
+" VIEW CORE FUNCTIONS.                                               {{{1
 " return 'quit' to end the session.
 " return 'handled' to suppres main key loop handling.
 " return 'pass' to let main key loop handle the event.
-function mudox#omnimenu#grid_view#view(provider, session)             " {{{1
+function mudox#omnimenu#grid_view#view(provider, session)             " {{{2
   let a:session.data = a:provider.feed(a:session)
 
   " figure out cell width.
@@ -50,9 +51,9 @@ function mudox#omnimenu#grid_view#view(provider, session)             " {{{1
          \ "v:val . printf('%' . a:session.grid.cellw . 's', '')")
 
   return view_lines
-endfunction "  }}}1
+endfunction "  }}}2
 
-function mudox#omnimenu#grid_view#handle_key(provider, session, nr)   " {{{1
+function mudox#omnimenu#grid_view#handle_key(provider, session, nr)   " {{{2
   if a:nr == 10                               " <C-j>
     if (a:session.idx - a:session.grid.cols) >= 0
       let a:session.idx -= a:session.grid.cols
@@ -81,16 +82,17 @@ function mudox#omnimenu#grid_view#handle_key(provider, session, nr)   " {{{1
   endif
 
   return 'handled'
-endfunction "  }}}1
+endfunction "  }}}2
 
-function mudox#omnimenu#grid_view#highlight(provider, session)        " {{{1
+function mudox#omnimenu#grid_view#highlight(provider, session)        " {{{2
   if !exists('a:session.grid.old_cellw') ||
         \ a:session.grid.old_cellw != a:session.grid.cellw
     syntax clear
 
     " mosaic effect.
 
-    " two colors deprecated                                                {{{2
+
+    " two colors deprecated      {{{3
     "let [hi_0, hi_1] = ['OmniMenuMosaicCellA', 'OmniMenuMosaicCallB']
     "for r in range(1, a:session.grid.rows)
     "for c in range(a:session.grid.cols + 2)
@@ -100,7 +102,7 @@ function mudox#omnimenu#grid_view#highlight(provider, session)        " {{{1
     "endfor
     "let [hi_0, hi_1] = [hi_1, hi_0]
     "endfor
-    "}}}2
+    "}}}3
 
     " one colors
     for r in range(1, a:session.grid.rows)
@@ -111,7 +113,7 @@ function mudox#omnimenu#grid_view#highlight(provider, session)        " {{{1
       endfor
     endfor
 
-    let s:old_cellw = a:session.grid.cellw
+    let a:session.grid.old_cellw = a:session.grid.cellw
   endif
 
   " highlight current cell.
@@ -121,17 +123,18 @@ function mudox#omnimenu#grid_view#highlight(provider, session)        " {{{1
 
   call s:hi_cur_cell(row, head, tail, 'Visual', a:session)
 
-  "let &l:statusline = printf('idx:%d row:%d left:%d right:%d', a:session.idx, row, head, head)
-  "let &l:statusline = printf('wrap: %s, filetype: %s', &l:wrap, &filetype)
-  "let &l:statusline = printf('cnt: %d', s:cnt)
-endfunction "  }}}1
+endfunction "  }}}2
 
-function s:hi_cell(row, head, tail, group)                            " {{{1
+" }}}1
+
+" HELPER FUNCTIONS.                                                  {{{1
+
+function s:hi_cell(row, head, tail, group)                            " {{{2
   let cell_pat = printf('\%%%dl\%%>%dc.*\%%<%dc', a:row, a:head, a:tail)
   execute printf('syntax match %s +%s+', a:group, cell_pat)
-endfunction "  }}}1
+endfunction "  }}}2
 
-function s:hi_cur_cell(row, head, tail, group, session)               " {{{1
+function s:hi_cur_cell(row, head, tail, group, session)               " {{{2
   " first clear last current cell.
   if exists('a:session.cur_cell_hlid')
     call matchdelete(a:session.cur_cell_hlid)
@@ -140,4 +143,6 @@ function s:hi_cur_cell(row, head, tail, group, session)               " {{{1
 
   let cell_pat = printf('\%%%dl\%%>%dc.*\%%<%dc', a:row, a:head, a:tail)
   let a:session.cur_cell_hlid = matchadd(a:group, cell_pat, 100)
-endfunction "  }}}1
+endfunction "  }}}2
+
+" }}}1
