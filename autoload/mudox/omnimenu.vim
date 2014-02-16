@@ -15,6 +15,8 @@ function mudox#omnimenu#close() " {{{2
   if tabpagenr('$') == 1 && winnr('$') == 1
     quit!
   else
+    call s:leave()
+
     close! | redraw | echo
     wincmd p
   endif
@@ -32,5 +34,15 @@ function mudox#omnimenu#buffer_init() " {{{2
   setlocal nowrap
   setlocal nonumber
   setlocal nolist
+
+  if &timeout
+    let b:old_timeoutlen = &timeoutlen
+    set timeoutlen=10
+  endif
 endfunction "  }}}2
+
+function s:leave() " {{{2
+  let &timeoutlen = b:old_timeoutlen
+endfunction "  }}}2
+
 " }}}1
