@@ -120,7 +120,6 @@ function mudox#omnimenu#grid_view#highlight(provider, session)        " {{{1
   let tail = head + a:session.grid.cellw + 1
 
   call s:hi_cur_cell(row, head, tail, 'Visual', a:session)
-  call cursor(row, head)
 
   "let &l:statusline = printf('idx:%d row:%d left:%d right:%d', a:session.idx, row, head, head)
   "let &l:statusline = printf('wrap: %s, filetype: %s', &l:wrap, &filetype)
