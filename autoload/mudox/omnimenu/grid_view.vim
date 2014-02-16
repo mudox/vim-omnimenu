@@ -89,6 +89,7 @@ function mudox#omnimenu#grid_view#highlight(provider, session)        " {{{2
         \ a:session.grid.old_cellw != a:session.grid.cellw
     syntax clear
     call clearmatches()
+    silent! unlet a:session.grid.cur_cell_hlid
 
     " mosaic effect.
 
@@ -139,13 +140,11 @@ endfunction "  }}}2
 
 function s:hi_cur_cell(row, head, tail, group, session)               " {{{2
   " first clear last highlighting.
-  if exists('a:session.cur_cell_hlid')
-    call matchdelete(a:session.cur_cell_hlid)
-    unlet a:session.cur_cell_hlid
-  endif
+    silent! call matchdelete(a:session.grid.cur_cell_hlid)
+    silent! unlet a:session.grid.cur_cell_hlid
 
   let cell_pat = printf('\%%%dl\%%>%dc.*\%%<%dc', a:row, a:head, a:tail)
-  let a:session.cur_cell_hlid = matchadd(a:group, cell_pat, 100)
+  let a:session.grid.cur_cell_hlid = matchadd(a:group, cell_pat, 100)
 endfunction "  }}}2
 
 " }}}1
