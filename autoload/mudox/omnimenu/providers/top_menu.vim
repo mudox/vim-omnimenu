@@ -18,7 +18,7 @@ function s:on_enter(session) " {{{2
   " close omnibuffer & clear cmd line.
   call mudox#omnimenu#close()
 
-  let selected_provider = s:provider_map[a:session.line]
+  let selected_provider = s:provider_map[a:session.getsel()]
   call OmniMenu(selected_provider)
 endfunction "  }}}2
 
