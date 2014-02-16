@@ -102,7 +102,7 @@ endfunction "  }}}2
 
 " CORE FUNCTIONS                             {{{1
 function s:update_buffer(provider)            " {{{2
-  let old_line_count = len(get(s:session, 'data', []))
+  let old_data_count = len(get(s:session, 'data', []))
 
   " re-feed data & redraw window only if needed.
   if !has_key(s:session, 'buffer') || has_key(s:session, 'redraw')
@@ -114,7 +114,7 @@ function s:update_buffer(provider)            " {{{2
     if !has_key(s:session, 'idx')
       let s:session.idx = 0
     else
-      if len(s:session.data) != old_line_count
+      if len(s:session.data) != old_data_count
         let s:session.idx = 0
       endif
     endif
@@ -298,27 +298,27 @@ endfunction "  }}}2
 
 " main entry.
 function OmniMenu(provider)                   " {{{2
-  let provider = s:check_convert_provider(a:provider)
+  let provider_dict = s:check_convert_provider(a:provider)
+
+  " reset for a new session.
+  call s:new_session(provider_dict)
+
+  call s:inhume_cursor()
 
   " open a new window in the user specified way, 'new' if not.
   " suppress any autocmd events.
   silent execute printf("noautocmd %s __mudox__omnimenu__",
-        \ get(provider, 'open_way', 'botright 1new'))
-
-  " set status line & cursor.
-  let status_string = 'OmniMenu > ' . provider['title']
-  let &l:statusline = status_string
-
-  call s:inhume_cursor()
-
-  " reset for a new session.
-  call s:new_session(a:provider)
+        \ get(provider_dict, 'open_way', 'botright 1new'))
 
   " ftplugin/omnimenu.vim will be sourced.
   let &filetype = printf('omnimenu_%s_view', s:session.view)
 
+  " set status line & cursor.
+  let status_string = 'OmniMenu > ' . provider_dict['title']
+  let &l:statusline = status_string
+
   " entry main key loop.
-  call s:key_loop(provider)
+  call s:key_loop(provider_dict)
 
   call s:exhume_cursor()
 endfunction "  }}}2
@@ -341,11 +341,4 @@ endfunction "  }}}2
 
 " }}}1
 
-" COMMANDS & MAPPINGS                        {{{1
-
-" command & mapping to stat 'top_menu' session.
-command -narg=0 OmniMenuTopMenu call OmniMenu(
-      \ mudox#omnimenu#providers#top_menu#provider)
-nnoremap <silent> <Plug>(OmniMenu_TopMenu) :<C-U>OmniMenuTopMenu<Cr>
-
-" }}}1
+provider_dict
