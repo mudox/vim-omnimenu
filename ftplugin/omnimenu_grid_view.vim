@@ -1,13 +1,8 @@
-setlocal buftype=nofile
-setlocal noswapfile
-setlocal bufhidden=wipe
-setlocal nobuflisted
-setlocal nowrap
-
+call mudox#omnimenu#buffer_init()
 " GRID VIEW HIGHLIGHT SETTING. {{{1
 
 " mosiac effect.
-function! s:mosaic_highlight() " {{{2
+function! s:grid_view_highlight() " {{{1
   let bg = synIDattr(hlID('Normal'), 'bg#')
 
   let bg_list = map([bg[1:2], bg[3:4], bg[5:6]], '"0x" . v:val + 0xc')
@@ -16,8 +11,8 @@ function! s:mosaic_highlight() " {{{2
 
   highlight link OmniMenuMosaicCellA Normal
   silent! execute printf('highlight OmniMenuMosaicCallB guibg=#%s', bg)
-endfunction "  }}}2
+endfunction "  }}}1
 
-call s:mosaic_highlight()
+call s:grid_view_highlight()
 
 " }}}1
