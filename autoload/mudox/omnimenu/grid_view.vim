@@ -110,7 +110,7 @@ function mudox#omnimenu#grid_view#highlight(provider, session)        " {{{2
     for r in range(1, a:session.grid.rows)
       for c in range(r % 2, a:session.grid.cols + 2, 2)
         let head = c * a:session.grid.cellw
-        let tail = head + a:session.grid.cellw + 2
+        let tail = head + a:session.grid.cellw + 1
         call s:hi_cell(r, head, tail, 'OmniMenuMosaicCallB')
       endfor
     endfor
