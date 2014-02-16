@@ -54,16 +54,24 @@ let s:win_max_height = get(g:, 'g:omnimenu_win_height', 8)
 " HELPER FUNCTIONS                           {{{1
 
 function s:inhume_cursor()                    " {{{2
+  if !has('gui_running')
+    return
+  endif
+
   " save old settings.
   let s:cursor_id = hlID('Cursor')
-  let s:cursor_fg = synIDattr(s:cursor_id, 'fg')
-  let s:cursor_bg = synIDattr(s:cursor_id, 'bg')
+  let s:cursor_fg = synIDattr(synIDtrans(s:cursor_id), 'fg')
+  let s:cursor_bg = synIDattr(synIDtrans(s:cursor_id), 'bg')
 
   " bury it.
   highlight clear Cursor
 endfunction "  }}}2
 
 function s:exhume_cursor()                    " {{{2
+  if !has('gui_running')
+    return
+  endif
+
   let mode = has('gui_running') ? 'gui' : 'cterm'
   let fg = !empty(s:cursor_fg) ? printf('%sfg=%s', mode, s:cursor_fg) : ''
   let bg = !empty(s:cursor_bg) ? printf('%sbg=%s', mode, s:cursor_bg) : ''
