@@ -26,6 +26,11 @@ function mudox#omnimenu#buffer_init() " {{{2
   setlocal noswapfile
   setlocal bufhidden=wipe
   setlocal nobuflisted
+
+  setlocal nocursorcolumn
+  setlocal nocursorline
   setlocal nowrap
+  setlocal nonumber
+  setlocal nolist
 endfunction "  }}}2
 " }}}1
