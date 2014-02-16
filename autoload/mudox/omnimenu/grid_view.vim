@@ -122,6 +122,7 @@ function mudox#omnimenu#grid_view#highlight(provider, session)        " {{{2
   let tail = head + a:session.grid.cellw + 1
 
   call s:hi_cur_cell(row, head, tail, 'Visual', a:session)
+  call cursor(row, head)
 
 endfunction "  }}}2
 
