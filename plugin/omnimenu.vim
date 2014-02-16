@@ -341,4 +341,11 @@ endfunction "  }}}2
 
 " }}}1
 
-provider_dict
+" COMMANDS & MAPPINGS                        {{{1
+
+" command & mapping to stat 'top_menu' session.
+command -narg=0 OmniMenuTopMenu call OmniMenu(
+      \ mudox#omnimenu#providers#top_menu#provider)
+nnoremap <silent> <Plug>(OmniMenu_TopMenu) :<C-U>OmniMenuTopMenu<Cr>
+
+" }}}1
