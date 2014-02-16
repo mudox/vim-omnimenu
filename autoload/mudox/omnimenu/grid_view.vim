@@ -88,6 +88,7 @@ function mudox#omnimenu#grid_view#highlight(provider, session)        " {{{2
   if !exists('a:session.grid.old_cellw') ||
         \ a:session.grid.old_cellw != a:session.grid.cellw
     syntax clear
+    call clearmatches()
 
     " mosaic effect.
 
@@ -132,7 +133,8 @@ endfunction "  }}}2
 
 function s:hi_cell(row, head, tail, group)                            " {{{2
   let cell_pat = printf('\%%%dl\%%>%dc.*\%%<%dc', a:row, a:head, a:tail)
-  execute printf('syntax match %s +%s+', a:group, cell_pat)
+  call matchadd(a:group, cell_pat, 10)
+  "execute printf('syntax match %s +%s+', a:group, cell_pat)
 endfunction "  }}}2
 
 function s:hi_cur_cell(row, head, tail, group, session)               " {{{2
