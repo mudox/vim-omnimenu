@@ -135,7 +135,7 @@ function s:hi_cell(row, head, tail, group)                            " {{{2
 endfunction "  }}}2
 
 function s:hi_cur_cell(row, head, tail, group, session)               " {{{2
-  " first clear last current cell.
+  " first clear last highlighting.
   if exists('a:session.cur_cell_hlid')
     call matchdelete(a:session.cur_cell_hlid)
     unlet a:session.cur_cell_hlid
