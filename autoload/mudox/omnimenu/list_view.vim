@@ -55,7 +55,7 @@ function mudox#omnimenu#list_view#highlight(provider, session)        " {{{2
   
   " highlight current item.
   let cur_line_nr = a:session.list.rows - a:session.idx
-  call s:hi_cur_line(cur_line_nr, 'Keyword', a:session)
+  call s:hi_cur_line(cur_line_nr, 'Visual', a:session)
 endfunction "  }}}2
 
 " }}}1
