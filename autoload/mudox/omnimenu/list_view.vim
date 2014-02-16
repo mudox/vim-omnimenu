@@ -13,10 +13,13 @@ function mudox#omnimenu#list_view#view(provider, session)             " {{{2
   let a:session.data = a:provider.feed(a:session)
   let a:session.list.rows = min([a:session.max_height, len(a:session.data)])
 
-  return a:session.data[0:a:session.list.rows - 1]
+  let fmt = printf('%%-%ds', winwidth(0))
+
+  return map(copy(a:session.data[0:a:session.list.rows - 1]),
+        \ printf('printf("%s", v:val)', fmt))
 endfunction " }}}2
 
-" return 'quit' to end the session.
+" return 'quit' to end the fession.
 " return 'handled' to suppres main key loop handling.
 " return 'pass' to let main key loop handle the event.
 function mudox#omnimenu#list_view#handle_key(provider, session, nr)   " {{{2
