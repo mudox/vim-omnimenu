@@ -16,7 +16,8 @@ let s:loaded = 1
 "   'idx'        : the index of list provided by provider.feed() that current
 "                  selected..
 "   'line'       : selected line content.
-"   'data'       : a list of holding all lines rendered to omnimenu window
+"   'data'       : list of lines fed from provider.
+"   'buffer'     : buffer lines filled into the window.
 "                  buffer.
 "   'input'      : user input in the cmd line.
 "   'redraw'     : flag indicating the omnimenu buffer need to regen and &
@@ -36,6 +37,7 @@ let s:loaded = 1
 "   'description' :
 "   'feed'        : source line generator.
 "   'on_enter'    : user pressed enter key. return -1 to end the session.
+"   'view'        : 'list' or 'grid'.
 " }
 
 " hold all registered menu providers.
@@ -77,16 +79,23 @@ endfunction "  }}}2
 function s:new_session(provider)              " {{{2
   let s:session = {
         \ 'winnr'      : winnr(),
-        \ 'view'       : get(a:provider, 'view', 'grid'),
+        \ 'view'       : get(a:provider, 'view', 'list'),
         \ 'input'      : '',
         \ 'max_height' : get(a:provider, 'win_height', s:win_max_height),
         \ 'idx'        : 0,
         \ 'getsel'     : function('s:getsel'),
         \ }
 
-  let s:session.grid = {
-        \ 'getxy'     : function('s:index2xy'),
-        \ }
+  " s:check_convert_provider() already guarantee that provider will has field
+  " of 'view' holding an valid value.
+  if a:provider.view ==# 'list'
+    let s:session.list = {
+          \ }
+  elseif a:provider.view ==# 'grid'
+    let s:session.grid = {
+          \ 'getxy'     : function('s:index2xy'),
+          \ }
+  endif
 endfunction "  }}}2
 
 " }}}1
@@ -135,7 +144,6 @@ function s:update_buffer(provider)            " {{{2
 
     normal! zb
   endif
-
 endfunction "  }}}2
 
 " resize omnimenu window after buffer have been refreshed.
@@ -265,11 +273,18 @@ function s:check_convert_provider(provider)   " {{{2
 
   " must have a 'feed' field of funcref type.
   if !has_key(provider, 'feed')
-    throw printf("omnimenu: missing member 'feed' in provder %s",
+    throw printf("omnimenu: missing member 'feed' in provider %s",
           \ string(provider))
   elseif type(provider.feed) != type(function('add'))
     throw printf("omnimenu: provider.feed should be funcref in %s",
           \ string(provider))
+  endif
+
+  " if has a field 'view', must be 'list' or 'grid'
+  let provider.view = get(provider, 'view', 'list')
+  if index(['list', 'grid'], provider.view) == -1
+    throw printf('omnimenu: invalid value [%s] for provider.view',
+          \ provider.view)
   endif
 
   " TODO: many things to check.
