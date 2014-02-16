@@ -20,4 +20,12 @@ function mudox#omnimenu#close() " {{{2
   endif
 endfunction "  }}}2
 
+" initial settings for new opened omnimenu window & buffer.
+function mudox#omnimenu#buffer_init() " {{{2
+  setlocal buftype=nofile
+  setlocal noswapfile
+  setlocal bufhidden=wipe
+  setlocal nobuflisted
+  setlocal nowrap
+endfunction "  }}}2
 " }}}1
