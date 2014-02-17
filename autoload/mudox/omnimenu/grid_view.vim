@@ -89,12 +89,9 @@ function mudox#omnimenu#grid_view#highlight(provider, session)        " {{{2
         \ a:session.grid.old_cellw != a:session.grid.cellw
     syntax clear
     call clearmatches()
-    silent! unlet a:session.grid.cur_cell_hlid
 
     " mosaic effect.
-
-
-    " two colors deprecated      {{{3
+    " two colors deprecated currently     {{{3
     "let [hi_0, hi_1] = ['OmniMenuMosaicCellA', 'OmniMenuMosaicCallB']
     "for r in range(1, a:session.grid.rows)
     "for c in range(a:session.grid.cols + 2)
@@ -140,8 +137,7 @@ endfunction "  }}}2
 
 function s:hi_cur_cell(row, head, tail, group, session)               " {{{2
   " first clear last highlighting.
-    silent! call matchdelete(a:session.grid.cur_cell_hlid)
-    silent! unlet a:session.grid.cur_cell_hlid
+  silent! call matchdelete(a:session.grid.cur_cell_hlid)
 
   let cell_pat = printf('\%%%dl\%%>%dc.*\%%<%dc', a:row, a:head, a:tail)
   let a:session.grid.cur_cell_hlid = matchadd(a:group, cell_pat, 100)
