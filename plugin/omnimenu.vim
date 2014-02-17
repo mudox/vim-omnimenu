@@ -22,7 +22,6 @@ let s:loaded = 1
 "   'input'      : user input in the cmd line.
 "   'redraw'     : flag indicating the omnimenu buffer need to regen and &
 "                  redraw.
-"   'winnr'      : omnimenu main window nummber.
 "   'view'       : currently suport 'grid' & 'list'.
 "   'grid.cellw' : grid cell width in chars.
 "   'grid.cols'  : grid width in cells.
@@ -86,7 +85,6 @@ endfunction "  }}}2
 
 function s:new_session(provider)              " {{{2
   let s:session = {
-        \ 'winnr'      : winnr(),
         \ 'view'       : get(a:provider, 'view', 'list'),
         \ 'input'      : '',
         \ 'max_height' : get(a:provider, 'win_height', s:win_max_height),

@@ -24,7 +24,7 @@ function mudox#omnimenu#grid_view#view(provider, session)             " {{{2
   let a:session.grid.cellw += 1 " append a trailing space for gutter.
 
   " grid columns & rows.
-  let a:session.grid.cols = (winwidth(a:session.winnr) - 1) /
+  let a:session.grid.cols = (winwidth(0) - 1) /
         \ a:session.grid.cellw
   let data_rows = float2nr(ceil(len(a:session.data) * 1.0 /
         \ a:session.grid.cols))
