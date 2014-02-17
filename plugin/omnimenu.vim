@@ -222,20 +222,19 @@ endfunction "  }}}2
 
 " highlight.
 function s:update_highlight(provider)         " {{{2
+  " view specific highlightings.
+  call mudox#omnimenu#{s:session.view}_view#highlight(a:provider, s:session)
 
   " highlight matched part against session.input
   if !exists('s:session.old_input') ||
         \ s:session.old_input !=# s:session.input
     silent! call matchdelete(s:session.machted_hlid)
-    silent! unlet s:session.machted_hlid
 
     if !empty(s:session.input)
-      let s:session.machted_hlid = matchadd('MoreMsg', s:session.input, 50)
+      let s:session.machted_hlid = matchadd('MoreMsg',
+            \ '\V\C' . s:session.input, 200)
     endif
   endif
-
-  " view specific highlightings.
-  call mudox#omnimenu#{s:session.view}_view#highlight(a:provider, s:session)
 endfunction "  }}}2
 
 " 'a:provider' should be a string in the form of e.g.
