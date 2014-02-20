@@ -78,6 +78,10 @@ function s:exhume_cursor()                    " {{{2
   silent execute printf('highlight Cursor %s %s', fg, bg)
 endfunction "  }}}2
 
+" return:
+"   'handled' if provider reacts to the key event.
+"   'pass' if provider wants ignore the key evenet.
+"   'quit' it provider wants to  terminate the session.
 function s:view_handle(provider, key)         " {{{2
   return mudox#omnimenu#{s:session.view}_view#handle_key(
         \ a:provider, s:session, a:key)
