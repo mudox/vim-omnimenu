@@ -1,17 +1,17 @@
 " vim: foldmethod=marker
 
-" GUARD                                                              {{{1
+" GUARD                                                                                {{{1
 if exists("s:loaded") || &cp || version < 700
   finish
 endif
 let s:loaded = 1
 " }}}1
 
-" VIEW CORE FUNCTIONS.                                               {{{1
+" VIEW CORE FUNCTIONS.                                                                 {{{1
 " return 'quit' to end the session.
 " return 'handled' to suppres main key loop handling.
 " return 'pass' to let main key loop handle the event.
-function mudox#omnimenu#grid_view#view(provider, session)             " {{{2
+function mudox#omnimenu#grid_view#view(provider, session)                               " {{{2
   let a:session.data = a:provider.feed(a:session)
 
   " figure out cell width.
@@ -53,7 +53,7 @@ function mudox#omnimenu#grid_view#view(provider, session)             " {{{2
   return view_lines
 endfunction "  }}}2
 
-function mudox#omnimenu#grid_view#handle_key(provider, session, nr)   " {{{2
+function mudox#omnimenu#grid_view#handle_key(provider, session, nr)                     " {{{2
   if a:nr == 10                               " <C-j>
     if (a:session.idx - a:session.grid.cols) >= 0
       let a:session.idx -= a:session.grid.cols
@@ -84,14 +84,14 @@ function mudox#omnimenu#grid_view#handle_key(provider, session, nr)   " {{{2
   return 'handled'
 endfunction "  }}}2
 
-function mudox#omnimenu#grid_view#highlight(provider, session)        " {{{2
+function mudox#omnimenu#grid_view#highlight(provider, session)                          " {{{2
   if !exists('a:session.grid.old_cellw') ||
         \ a:session.grid.old_cellw != a:session.grid.cellw
     syntax clear
     call clearmatches()
 
     " mosaic effect.
-    " two colors deprecated currently     {{{3
+    " two colors deprecated currently                                                        {{{3
     "let [hi_0, hi_1] = ['OmniMenuMosaicCellA', 'OmniMenuMosaicCallB']
     "for r in range(1, a:session.grid.rows)
     "for c in range(a:session.grid.cols + 2)
@@ -127,15 +127,16 @@ endfunction "  }}}2
 
 " }}}1
 
-" HELPER FUNCTIONS.                                                  {{{1
+" HELPER FUNCTIONS.                                                                    {{{1
 
-function s:hi_cell(row, head, tail, group)                            " {{{2
+function s:hi_cell(row, head, tail, group)                                              " {{{2
+  if !has('gui_running') | return | endif
+
   let cell_pat = printf('\%%%dl\%%>%dc.*\%%<%dc', a:row, a:head, a:tail)
   call matchadd(a:group, cell_pat, 10)
-  "execute printf('syntax match %s +%s+', a:group, cell_pat)
 endfunction "  }}}2
 
-function s:hi_cur_cell(row, head, tail, group, session)               " {{{2
+function s:hi_cur_cell(row, head, tail, group, session)                                 " {{{2
   " first clear last highlighting.
   silent! call matchdelete(a:session.grid.cur_cell_hlid)
 

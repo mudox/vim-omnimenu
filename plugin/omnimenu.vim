@@ -1,13 +1,13 @@
 " vim: foldmethod=marker
 
-" GUARD                                      {{{1
+" GUARD                                                                                {{{1
 if exists("s:loaded") || &cp || version < 700
   finish
 endif
 let s:loaded = 1
 " }}}1
 
-" VARIABLES.                                 {{{1
+" VARIABLES.                                                                           {{{1
 
 " for each invocation of :OmniMenu, s:session is first cleared and then
 " refilled with infomation pertains to this session.
@@ -50,9 +50,9 @@ let s:win_max_height = get(g:, 'g:omnimenu_win_height', 8)
 
 " }}}1
 
-" HELPER FUNCTIONS                           {{{1
+" HELPER FUNCTIONS                                                                     {{{1
 
-function s:inhume_cursor()                    " {{{2
+function s:inhume_cursor()                                                              " {{{2
   if !has('gui_running')
     return
   endif
@@ -66,7 +66,7 @@ function s:inhume_cursor()                    " {{{2
   highlight clear Cursor
 endfunction "  }}}2
 
-function s:exhume_cursor()                    " {{{2
+function s:exhume_cursor()                                                              " {{{2
   if !has('gui_running')
     return
   endif
@@ -82,12 +82,12 @@ endfunction "  }}}2
 "   'handled' if provider reacts to the key event.
 "   'pass' if provider wants ignore the key evenet.
 "   'quit' it provider wants to  terminate the session.
-function s:view_handle(provider, key)         " {{{2
+function s:view_handle(provider, key)                                                   " {{{2
   return mudox#omnimenu#{s:session.view}_view#handle_key(
         \ a:provider, s:session, a:key)
 endfunction "  }}}2
 
-function s:new_session(provider)              " {{{2
+function s:new_session(provider)                                                        " {{{2
   let s:session = {
         \ 'view'       : get(a:provider, 'view', 'list'),
         \ 'input'      : '',
@@ -110,8 +110,8 @@ endfunction "  }}}2
 
 " }}}1
 
-" CORE FUNCTIONS                             {{{1
-function s:update_buffer(provider)            " {{{2
+" CORE FUNCTIONS                                                                       {{{1
+function s:update_buffer(provider)                                                      " {{{2
   let old_data_count = len(get(s:session, 'data', []))
 
   " re-feed data & redraw window only if needed.
@@ -157,7 +157,7 @@ function s:update_buffer(provider)            " {{{2
 endfunction "  }}}2
 
 " resize omnimenu window after buffer have been refreshed.
-function s:resize_win(provider)               " {{{2
+function s:resize_win(provider)                                                         " {{{2
   if !has_key(s:session, 'prev_win_height') " first draw.
     let win_height = min([s:session.max_height, len(s:session.buffer)])
     execute printf("resize %d", win_height)
@@ -178,7 +178,7 @@ endfunction "  }}}2
 " core key loop.
 " repeatedly call getchar() to absorb all key pressings from user when
 " omnimenu buffer is open.
-function s:key_loop(provider)                 " {{{2
+function s:key_loop(provider)                                                           " {{{2
   " list of ascii number of [0-9a-zA-Z]
   let normal_char = range(0x30, 0x39) + range(0x41, 0x5a) + range(0x61, 0x7a)
         \ + map(split('_/', '.\zs'), 'char2nr(v:val)')
@@ -223,7 +223,7 @@ function s:key_loop(provider)                 " {{{2
 endfunction "  }}}2
 
 " highlight.
-function s:update_highlight(provider)         " {{{2
+function s:update_highlight(provider)                                                   " {{{2
   " view specific highlightings.
   call mudox#omnimenu#{s:session.view}_view#highlight(a:provider, s:session)
 
@@ -245,7 +245,7 @@ endfunction "  }}}2
 " FIRST it will eval a:provider to get the underlying dictionary data
 " structure, the provider script wil be loaded if not.
 " THEN it will check provider's sanity. throw detailed info for any fault.
-function s:check_convert_provider(provider)   " {{{2
+function s:check_convert_provider(provider)                                             " {{{2
   " a:provider must be a string or a dict.
   " convert string to underlying dict if needed.
   if type(a:provider) == type('')
@@ -301,10 +301,10 @@ endfunction "  }}}2
 
 " }}}1
 
-" PUBLIC FUNCTIONS                           {{{1
+" PUBLIC FUNCTIONS                                                                     {{{1
 
 " main entry.
-function OmniMenu(provider)                   " {{{2
+function OmniMenu(provider)                                                             " {{{2
   let provider_dict = s:check_convert_provider(a:provider)
 
   " reset for a new session.
@@ -332,23 +332,23 @@ endfunction "  }}}2
 
 " }}}1
 
-" SESSION MEMBER FUNCTIONS                   {{{1
+" SESSION MEMBER FUNCTIONS                                                             {{{1
 
-function s:index2xy() dict                    " {{{2
+function s:index2xy() dict                                                              " {{{2
   " NOTE: self here points to session.gird.
   let x = s:session.idx % self.cols
   let y = self.rows - (s:session.idx / self.cols)
   return [x, y]
 endfunction "  }}}2
 
-function s:getsel() dict                      " {{{2
+function s:getsel() dict                                                                " {{{2
   " NOTE: self here points to session.
   return self.data[self.idx]
 endfunction "  }}}2
 
 " }}}1
 
-" COMMANDS & MAPPINGS                        {{{1
+" COMMANDS & MAPPINGS                                                                  {{{1
 
 " command & mapping to stat 'top_menu' session.
 command -narg=0 OmniMenuTopMenu call OmniMenu(
